@@ -41,7 +41,7 @@ npm run build
 
 ## 部署
 
-本项目使用Vercel进行部署，并使用Firebase作为后端服务。详细部署步骤请参考`免费部署方案实施步骤.md`文件。
+本项目使用Vercel进行部署，并使用Firebase作为后端服务。
 
 ## 许可证
 

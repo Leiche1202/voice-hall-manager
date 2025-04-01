@@ -195,6 +195,7 @@ const ScheduleManagement = () => {
   const [selecting, setSelecting] = React.useState(null);
   const [isSaving, setIsSaving] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(true);
+  const [saveStatus, setSaveStatus] = React.useState(''); // 添加保存状态提示
   const { getSchedule, saveSchedule } = useApi(); // 使用API上下文
   
   // 加载档表数据
@@ -217,6 +218,16 @@ const ScheduleManagement = () => {
     loadSchedule();
   }, [getSchedule]);
 
+  // 状态提示自动消失
+  React.useEffect(() => {
+    if (saveStatus) {
+      const timer = setTimeout(() => {
+        setSaveStatus('');
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [saveStatus]);
+
   const formatHour = (h) => String(h).padStart(2, '0') + ':00';
 
   const handleCellClick = (hour, role) => {
@@ -224,15 +235,25 @@ const ScheduleManagement = () => {
     setSelecting({ hour, role });
   };
 
+  // 处理跨天排班逻辑
   const handleSelectHost = (name) => {
     const newSchedule = [...schedule];
     newSchedule[selecting.hour].备档 = name;
 
+    // 更新主档和陪档，考虑跨天逻辑
     for (let i = 0; i < 24; i++) {
       if (i === 0) {
-        newSchedule[i].主档 = '';
-        newSchedule[i].陪档 = '';
+        // 0点的主档是前一天23点的备档
+        newSchedule[i].主档 = newSchedule[23].备档 || '';
+        // 0点的陪档是前一天23点的主档
+        newSchedule[i].陪档 = newSchedule[23].主档 || '';
+      } else if (i === 1) {
+        // 1点的主档是0点的备档
+        newSchedule[i].主档 = newSchedule[0].备档 || '';
+        // 1点的陪档是前一天22点的备档（因为23点的备档已经成为0点的主档）
+        newSchedule[i].陪档 = newSchedule[22].备档 || '';
       } else {
+        // 正常情况：当前小时的主档是上一小时的备档，陪档是上一小时的主档
         newSchedule[i].主档 = newSchedule[i - 1].备档 || '';
         newSchedule[i].陪档 = newSchedule[i - 1].主档 || '';
       }
@@ -245,11 +266,13 @@ const ScheduleManagement = () => {
   const handleClear = () => {
     if (window.confirm('确认清空全部档表吗？')) {
       setSchedule(Array.from({ length: 24 }, () => ({ 备档: '', 主档: '', 陪档: '' })));
+      setSaveStatus('档表已清空，请记得保存更改');
     }
   };
 
   const handleSave = async () => {
     setIsSaving(true);
+    setSaveStatus('正在保存...');
     try {
       const today = new Date().toISOString().split('T')[0];
       await saveSchedule({
@@ -258,14 +281,18 @@ const ScheduleManagement = () => {
         details: schedule,
         status: 'published'
       });
-      alert('档表已保存！');
+      setSaveStatus('档表已成功保存！');
     } catch (error) {
       console.error("Failed to save schedule:", error);
-      alert('保存失败，请重试！');
+      setSaveStatus('保存失败，请重试！');
     } finally {
       setIsSaving(false);
     }
   };
+
+  // 将24小时分成两列，每列12小时
+  const firstHalfHours = Array.from({ length: 12 }, (_, i) => i);
+  const secondHalfHours = Array.from({ length: 12 }, (_, i) => i + 12);
 
   return (
     <motion.div
@@ -285,37 +312,86 @@ const ScheduleManagement = () => {
         </Button>
       </div>
       <h1 className="text-3xl font-bold mb-8 text-center text-gray-800">档表管理</h1>
-      <div className="overflow-x-auto">
-        <table className="w-full text-center border border-gray-300 rounded-lg shadow-md">
-          <thead className="bg-purple-100">
-            <tr>
-              <th className="border p-3 text-gray-700">时间</th>
-              <th className="border p-3 text-gray-700">备档</th>
-              <th className="border p-3 text-gray-700">主档</th>
-              <th className="border p-3 text-gray-700">陪档</th>
-            </tr>
-          </thead>
-          <tbody>
-            {schedule.map((row, hour) => (
-              <tr key={hour} className={hour === new Date().getHours() ? 'bg-purple-50' : ''}>
-                <td className="border p-3 font-medium text-gray-800">{formatHour(hour)}</td>
-                {['备档', '主档', '陪档'].map((role) => (
-                  <td
-                    key={role}
-                    className={cn(
-                      "border p-3",
-                      role === '备档' ? 'cursor-pointer hover:bg-purple-100 transition-colors duration-200' : '',
-                      row[role] ? 'font-semibold text-purple-700' : 'text-gray-400'
-                    )}
-                    onClick={() => handleCellClick(hour, role)}
-                  >
-                    {row[role] || <span className="text-gray-400">未指定</span>}
-                  </td>
-                ))}
+      
+      {/* 保存状态提示 */}
+      {saveStatus && (
+        <div className={`mb-4 p-3 rounded-md text-center ${saveStatus.includes('失败') ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+          {saveStatus}
+        </div>
+      )}
+      
+
+      
+      <div className="flex flex-col md:flex-row gap-4">
+        {/* 第一列：0-11小时 */}
+        <div className="flex-1 overflow-x-auto">
+          <table className="w-full text-center border border-gray-300 rounded-lg shadow-md">
+            <thead className="bg-purple-100">
+              <tr>
+                <th className="border p-3 text-gray-700">时间</th>
+                <th className="border p-3 text-gray-700">备档</th>
+                <th className="border p-3 text-gray-700">主档</th>
+                <th className="border p-3 text-gray-700">陪档</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {firstHalfHours.map((hour) => (
+                <tr key={hour} className={hour === new Date().getHours() ? 'bg-purple-50' : ''}>
+                  <td className="border p-3 font-medium text-gray-800">{formatHour(hour)}</td>
+                  {['备档', '主档', '陪档'].map((role) => (
+                    <td
+                      key={role}
+                      className={cn(
+                        "border p-3",
+                        role === '备档' ? 'cursor-pointer hover:bg-purple-100 transition-colors duration-200' : '',
+                        schedule[hour][role] ? 'font-semibold text-purple-700' : 'text-gray-400'
+                      )}
+                      onClick={() => handleCellClick(hour, role)}
+                    >
+                      {schedule[hour][role] || <span className="text-gray-400">未指定</span>}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        
+        {/* 第二列：12-23小时 */}
+        <div className="flex-1 overflow-x-auto">
+          <table className="w-full text-center border border-gray-300 rounded-lg shadow-md">
+            <thead className="bg-purple-100">
+              <tr>
+                <th className="border p-3 text-gray-700">时间</th>
+                <th className="border p-3 text-gray-700">备档</th>
+                <th className="border p-3 text-gray-700">主档</th>
+                <th className="border p-3 text-gray-700">陪档</th>
+              </tr>
+            </thead>
+            <tbody>
+              {secondHalfHours.map((hour) => (
+                <tr key={hour} className={hour === new Date().getHours() ? 'bg-purple-50' : ''}>
+                  <td className="border p-3 font-medium text-gray-800">{formatHour(hour)}</td>
+                  {['备档', '主档', '陪档'].map((role) => (
+                    <td
+                      key={role}
+                      className={cn(
+                        "border p-3",
+                        role === '备档' ? 'cursor-pointer hover:bg-purple-100 transition-colors duration-200' : '',
+                        // 高亮显示22:00和23:00的备档，提示跨天逻辑
+                        (hour >= 22 && role === '备档') ? 'bg-blue-50 ' : '',
+                        schedule[hour][role] ? 'font-semibold text-purple-700' : 'text-gray-400'
+                      )}
+                      onClick={() => handleCellClick(hour, role)}
+                    >
+                      {schedule[hour][role] || <span className="text-gray-400">未指定</span>}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <div className="mt-8 flex justify-center gap-4 flex-wrap">

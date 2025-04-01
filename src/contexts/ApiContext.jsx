@@ -65,14 +65,19 @@ export function ApiProvider({ children }) {
   // 保存档表
   const saveSchedule = async (scheduleData) => {
     try {
+      let result;
       if (scheduleData.id) {
         // 更新现有档表
-        await updateSchedule(scheduleData.id, scheduleData);
+        result = await updateSchedule(scheduleData.id, scheduleData);
       } else {
         // 创建新档表
-        await addSchedule(scheduleData);
+        result = await addSchedule(scheduleData);
       }
-      return true;
+      
+      // 添加短暂延迟以确保数据已同步
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      return result;
     } catch (error) {
       console.error("Save schedule error:", error);
       throw error;

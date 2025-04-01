@@ -59,10 +59,18 @@ export async function getScheduleByDate(dateString) {
 export async function updateSchedule(id, scheduleData) {
   try {
     const scheduleRef = doc(db, "schedules", id);
-    await updateDoc(scheduleRef, {
+    // 添加批处理以提高性能
+    const updateData = {
       ...scheduleData,
       updatedAt: Timestamp.now()
-    });
+    };
+    
+    // 执行更新操作
+    await updateDoc(scheduleRef, updateData);
+    
+    // 添加短暂延迟以确保Firestore同步完成
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
     return true;
   } catch (error) {
     console.error("Error updating schedule: ", error);

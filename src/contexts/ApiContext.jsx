@@ -45,16 +45,31 @@ export function ApiProvider({ children }) {
   const getSchedule = async (date) => {
     try {
       const dateStr = date instanceof Date ? date.toISOString().split('T')[0] : date;
+      
+      // 使用缓存机制提高加载速度
+      const cacheKey = `schedule_${dateStr}`;
+      const cachedData = sessionStorage.getItem(cacheKey);
+      
+      // 如果有缓存数据，直接返回
+      if (cachedData) {
+        return JSON.parse(cachedData);
+      }
+      
       const schedule = await getScheduleByDate(dateStr);
       
       // 如果没有找到档表，创建一个空的
       if (!schedule) {
-        return {
+        const emptySchedule = {
           date: new Date(dateStr),
           details: Array.from({ length: 24 }, () => ({ 备档: '', 主档: '', 陪档: '' }))
         };
+        // 缓存空档表
+        sessionStorage.setItem(cacheKey, JSON.stringify(emptySchedule));
+        return emptySchedule;
       }
       
+      // 缓存获取到的档表
+      sessionStorage.setItem(cacheKey, JSON.stringify(schedule));
       return schedule;
     } catch (error) {
       console.error("Get schedule error:", error);
@@ -66,20 +81,28 @@ export function ApiProvider({ children }) {
   const saveSchedule = async (scheduleData) => {
     try {
       let result;
+      // 确保数据格式正确
+      const validatedData = {
+        ...scheduleData,
+        // 确保日期格式正确
+        date: scheduleData.date instanceof Date ? scheduleData.date : new Date(scheduleData.date)
+      };
+      
       if (scheduleData.id) {
         // 更新现有档表
-        result = await updateSchedule(scheduleData.id, scheduleData);
+        result = await updateSchedule(scheduleData.id, validatedData);
       } else {
         // 创建新档表
-        result = await addSchedule(scheduleData);
+        result = await addSchedule(validatedData);
       }
       
-      // 添加短暂延迟以确保数据已同步
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // 减少延迟时间，提高响应速度
+      await new Promise(resolve => setTimeout(resolve, 300));
       
       return result;
     } catch (error) {
       console.error("Save schedule error:", error);
+      // 重新抛出错误，以便UI层可以处理
       throw error;
     }
   };

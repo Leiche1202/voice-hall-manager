@@ -286,6 +286,7 @@ const ScheduleManagement = () => {
       console.error("Failed to save schedule:", error);
       setSaveStatus('保存失败，请重试！');
     } finally {
+      // 确保在所有情况下都重置保存状态
       setIsSaving(false);
     }
   };
@@ -336,7 +337,7 @@ const ScheduleManagement = () => {
             </thead>
             <tbody>
               {firstHalfHours.map((hour) => (
-                <tr key={hour} className={hour === new Date().getHours() ? 'bg-purple-50' : ''}>
+                <tr key={hour} className={hour === getCurrentBeijingHour() ? 'bg-purple-200 font-bold' : ''}>
                   <td className="border p-3 font-medium text-gray-800">{formatHour(hour)}</td>
                   {['备档', '主档', '陪档'].map((role) => (
                     <td
@@ -370,7 +371,7 @@ const ScheduleManagement = () => {
             </thead>
             <tbody>
               {secondHalfHours.map((hour) => (
-                <tr key={hour} className={hour === new Date().getHours() ? 'bg-purple-50' : ''}>
+                <tr key={hour} className={hour === getCurrentBeijingHour() ? 'bg-purple-200 font-bold' : ''}>
                   <td className="border p-3 font-medium text-gray-800">{formatHour(hour)}</td>
                   {['备档', '主档', '陪档'].map((role) => (
                     <td
@@ -511,3 +512,16 @@ function App() {
 }
 
 export default App;
+// 获取北京时间的当前小时
+const getCurrentBeijingHour = () => {
+// 创建当前UTC时间的Date对象
+const now = new Date();
+// 北京时间是UTC+8，计算时间差（毫秒）
+const beijingTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+// 如果已经是北京时区，则直接返回当前小时
+if (now.getTimezoneOffset() === -480) {
+return now.getHours();
+}
+// 否则返回计算后的北京时间小时
+return beijingTime.getUTCHours();
+};

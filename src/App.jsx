@@ -245,17 +245,17 @@ const ScheduleManagement = () => {
       if (i === 0) {
         // 0点的主档是前一天23点的备档
         newSchedule[i].主档 = newSchedule[23].备档 || '';
-        // 0点的陪档是前一天23点的主档
-        newSchedule[i].陪档 = newSchedule[23].主档 || '';
+        // 0点的陪档是前一天22点的备档
+        newSchedule[i].陪档 = newSchedule[22].备档 || '';
       } else if (i === 1) {
         // 1点的主档是0点的备档
         newSchedule[i].主档 = newSchedule[0].备档 || '';
-        // 1点的陪档是前一天22点的备档（因为23点的备档已经成为0点的主档）
-        newSchedule[i].陪档 = newSchedule[22].备档 || '';
+        // 1点的陪档是前一天23点的备档
+        newSchedule[i].陪档 = newSchedule[23].备档 || '';
       } else {
-        // 正常情况：当前小时的主档是上一小时的备档，陪档是上一小时的主档
+        // 正常情况：当前小时的主档是上一小时的备档，陪档是上上小时的备档
         newSchedule[i].主档 = newSchedule[i - 1].备档 || '';
-        newSchedule[i].陪档 = newSchedule[i - 1].主档 || '';
+        newSchedule[i].陪档 = newSchedule[i - 2 >= 0 ? i - 2 : i + 22].备档 || '';
       }
     }
 

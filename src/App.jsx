@@ -275,12 +275,15 @@ const ScheduleManagement = () => {
     setSaveStatus('正在保存...');
     try {
       const today = new Date().toISOString().split('T')[0];
-      await saveSchedule({
+      const id = await saveSchedule({
         id: scheduleId,
         date: today,
         details: schedule,
         status: 'published'
       });
+      if (!scheduleId && id) {
+        setScheduleId(id);
+      }
       setSaveStatus('档表已成功保存！');
     } catch (error) {
       console.error("Failed to save schedule:", error);

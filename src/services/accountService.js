@@ -4,7 +4,42 @@ export const DEFAULT_ACCOUNTS = [
     username: 'admin',
     password: '111',
     role: 'admin',
-    displayName: '系统管理员'
+    group: '管理员'
+  },
+  {
+    id: '10001',
+    username: '10001',
+    password: '123456',
+    role: 'host',
+    group: '主持'
+  },
+  {
+    id: '10002',
+    username: '10002',
+    password: '123456',
+    role: 'host',
+    group: '主持'
+  },
+  {
+    id: '10003',
+    username: '10003',
+    password: '123456',
+    role: 'host',
+    group: '主持'
+  },
+  {
+    id: '10004',
+    username: '10004',
+    password: '123456',
+    role: 'host',
+    group: '主持'
+  },
+  {
+    id: '10005',
+    username: '10005',
+    password: '123456',
+    role: 'host',
+    group: '主持'
   }
 ];
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -194,7 +194,7 @@ const HostDashboard = () => {
 };
 
 // 档表管理
-const mockHosts = ['小明', '小红', '阿翠', '张三', '李四'];
+const mockHosts = ['10001', '10002', '10003', '10004', '10005'];
 
 const ScheduleManagement = () => {
   const navigate = useNavigate();

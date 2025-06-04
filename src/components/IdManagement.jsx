@@ -11,7 +11,13 @@ import {
   deleteAccount
 } from '@/services/accountService';
 
-const emptyAccount = { username: '', password: '', role: 'host', displayName: '' };
+const ROLES = [
+  { value: 'admin', label: '管理员' },
+  { value: 'hall', label: '厅管' },
+  { value: 'host', label: '主持' }
+];
+
+const emptyAccount = { username: '', password: '', role: 'host', group: '主持' };
 
 const IdManagement = () => {
   const navigate = useNavigate();
@@ -21,6 +27,10 @@ const IdManagement = () => {
   const handleChange = (index, field, value) => {
     const updated = [...accounts];
     updated[index][field] = value;
+    if (field === 'role') {
+      const r = ROLES.find((r) => r.value === value);
+      if (r) updated[index].group = r.label;
+    }
     setAccounts(updated);
   };
 
@@ -29,7 +39,12 @@ const IdManagement = () => {
   };
 
   const handleAdd = () => {
-    const account = { ...newAccount, id: Date.now().toString() };
+    const roleInfo = ROLES.find((r) => r.value === newAccount.role);
+    const account = {
+      ...newAccount,
+      id: Date.now().toString(),
+      group: roleInfo ? roleInfo.label : newAccount.group
+    };
     addAccount(account);
     setAccounts(getAccounts());
     setNewAccount(emptyAccount);
@@ -67,18 +82,17 @@ const IdManagement = () => {
                 onChange={(e) => handleChange(idx, 'password', e.target.value)}
                 placeholder="密码"
               />
-              <Input
-                type="text"
+              <select
                 value={acc.role}
                 onChange={(e) => handleChange(idx, 'role', e.target.value)}
-                placeholder="角色"
-              />
-              <Input
-                type="text"
-                value={acc.displayName}
-                onChange={(e) => handleChange(idx, 'displayName', e.target.value)}
-                placeholder="显示名"
-              />
+                className="w-full border rounded px-2 py-1"
+              >
+                {ROLES.map((r) => (
+                  <option key={r.value} value={r.value}>
+                    {r.label}
+                  </option>
+                ))}
+              </select>
               <Button
                 variant="destructive"
                 onClick={() => handleDelete(idx)}
@@ -107,18 +121,25 @@ const IdManagement = () => {
             onChange={(e) => setNewAccount({ ...newAccount, password: e.target.value })}
             placeholder="密码"
           />
-          <Input
-            type="text"
+          <select
             value={newAccount.role}
-            onChange={(e) => setNewAccount({ ...newAccount, role: e.target.value })}
-            placeholder="角色"
-          />
-          <Input
-            type="text"
-            value={newAccount.displayName}
-            onChange={(e) => setNewAccount({ ...newAccount, displayName: e.target.value })}
-            placeholder="显示名"
-          />
+            onChange={(e) => {
+              const value = e.target.value;
+              const info = ROLES.find((r) => r.value === value);
+              setNewAccount({
+                ...newAccount,
+                role: value,
+                group: info ? info.label : newAccount.group
+              });
+            }}
+            className="w-full border rounded px-2 py-1"
+          >
+            {ROLES.map((r) => (
+              <option key={r.value} value={r.value}>
+                {r.label}
+              </option>
+            ))}
+          </select>
           <Button onClick={handleAdd}>添加</Button>
         </CardContent>
       </Card>

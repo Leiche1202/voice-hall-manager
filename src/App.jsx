@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { ApiProvider, useApi } from './contexts/ApiContext';
+import { ScheduleProvider } from './contexts/ScheduleContext';
+import { useSchedule } from './hooks/useSchedule';
 
 // 登录页
 const LoginPage = () => {
@@ -188,35 +190,17 @@ const mockHosts = ['小明', '小红', '阿翠', '张三', '李四'];
 
 const ScheduleManagement = () => {
   const navigate = useNavigate();
-  const [schedule, setSchedule] = React.useState(() =>
-    Array.from({ length: 24 }, () => ({ 备档: '', 主档: '', 陪档: '' }))
-  );
-  const [scheduleId, setScheduleId] = React.useState(null);
   const [selecting, setSelecting] = React.useState(null);
-  const [isSaving, setIsSaving] = React.useState(false);
-  const [isLoading, setIsLoading] = React.useState(true);
-  const [saveStatus, setSaveStatus] = React.useState(''); // 添加保存状态提示
-  const { getSchedule, saveSchedule } = useApi(); // 使用API上下文
+  const {
+    schedule,
+    setSchedule,
+    scheduleId,
+    isSaving,
+    saveStatus,
+    handleSave,
+    setSaveStatus,
+  } = useSchedule();
   
-  // 加载档表数据
-  React.useEffect(() => {
-    const loadSchedule = async () => {
-      try {
-        const today = new Date().toISOString().split('T')[0];
-        const result = await getSchedule(today);
-        if (result) {
-          setScheduleId(result.id);
-          setSchedule(result.details || []);
-        }
-      } catch (error) {
-        console.error("Failed to load schedule:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    loadSchedule();
-  }, [getSchedule]);
 
   // 状态提示自动消失
   React.useEffect(() => {
@@ -270,29 +254,6 @@ const ScheduleManagement = () => {
     }
   };
 
-  const handleSave = async () => {
-    setIsSaving(true);
-    setSaveStatus('正在保存...');
-    try {
-      const today = new Date().toISOString().split('T')[0];
-      const id = await saveSchedule({
-        id: scheduleId,
-        date: today,
-        details: schedule,
-        status: 'published'
-      });
-      if (!scheduleId && id) {
-        setScheduleId(id);
-      }
-      setSaveStatus('档表已成功保存！');
-    } catch (error) {
-      console.error("Failed to save schedule:", error);
-      setSaveStatus('保存失败，请重试！');
-    } finally {
-      // 确保在所有情况下都重置保存状态
-      setIsSaving(false);
-    }
-  };
 
   // 将24小时分成两列，每列12小时
   const firstHalfHours = Array.from({ length: 12 }, (_, i) => i);
@@ -498,18 +459,20 @@ const SalaryManagement = () => {
 function App() {
   return (
     <ApiProvider>
-      <Router>
-        <AnimatePresence mode='wait'>
-          <Routes>
-            <Route path="/" element={<LoginPage />} />
-            <Route path="/hall-admin-dashboard" element={<HallAdminDashboardWrapper />} />
-            <Route path="/host-dashboard" element={<HostDashboard />} />
-            <Route path="/schedule-management" element={<ScheduleManagement />} />
-            <Route path="/salary-management" element={<SalaryManagement />} />
-            <Route path="*" element={<Navigate to="/" />} />
-          </Routes>
-        </AnimatePresence>
-      </Router>
+      <ScheduleProvider>
+        <Router>
+          <AnimatePresence mode='wait'>
+            <Routes>
+              <Route path="/" element={<LoginPage />} />
+              <Route path="/hall-admin-dashboard" element={<HallAdminDashboardWrapper />} />
+              <Route path="/host-dashboard" element={<HostDashboard />} />
+              <Route path="/schedule-management" element={<ScheduleManagement />} />
+              <Route path="/salary-management" element={<SalaryManagement />} />
+              <Route path="*" element={<Navigate to="/" />} />
+            </Routes>
+          </AnimatePresence>
+        </Router>
+      </ScheduleProvider>
     </ApiProvider>
   );
 }

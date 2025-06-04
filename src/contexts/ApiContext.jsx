@@ -26,9 +26,18 @@ export function ApiProvider({ children }) {
     try {
       // 使用模拟登录（开发阶段）
       const result = await mockLogin(username, password);
-      setCurrentUser(result.user);
-      localStorage.setItem('currentUser', JSON.stringify(result.user));
-      return result.user;
+      let role = '';
+      if (result.user.groups?.includes('管理员')) {
+        role = 'admin';
+      } else if (result.user.groups?.includes('主持')) {
+        role = 'host';
+      } else if (result.user.groups?.includes('厅管')) {
+        role = 'manager';
+      }
+      const userWithRole = { ...result.user, role };
+      setCurrentUser(userWithRole);
+      localStorage.setItem('currentUser', JSON.stringify(userWithRole));
+      return userWithRole;
     } catch (error) {
       console.error("Login error:", error);
       throw error;

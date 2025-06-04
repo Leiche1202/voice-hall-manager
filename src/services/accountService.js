@@ -10,14 +10,23 @@ export const DEFAULT_ACCOUNTS = [
   },
 ];
 
+const ACCOUNTS_VERSION = 1;
+
 export function getAccounts() {
+  const storedVersion = Number(localStorage.getItem("accounts_version") || "0");
   const stored = localStorage.getItem("accounts");
-  const list = stored ? JSON.parse(stored) : DEFAULT_ACCOUNTS.slice();
+  if (!storedVersion || storedVersion < ACCOUNTS_VERSION || !stored) {
+    localStorage.setItem("accounts_version", ACCOUNTS_VERSION);
+    localStorage.setItem("accounts", JSON.stringify(DEFAULT_ACCOUNTS));
+    return DEFAULT_ACCOUNTS.slice();
+  }
+  const list = JSON.parse(stored);
   return list.map((a) => ({ hall: "", manager: "", team: "", ...a }));
 }
 
 export function saveAccounts(accounts) {
   localStorage.setItem("accounts", JSON.stringify(accounts));
+  localStorage.setItem("accounts_version", ACCOUNTS_VERSION);
 }
 
 export function addAccount(account) {
@@ -36,4 +45,8 @@ export function deleteAccount(index) {
   const accounts = getAccounts();
   accounts.splice(index, 1);
   saveAccounts(accounts);
+}
+
+export function resetAccounts() {
+  saveAccounts(DEFAULT_ACCOUNTS.slice());
 }

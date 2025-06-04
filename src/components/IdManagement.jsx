@@ -1,25 +1,32 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { useNavigate } from 'react-router-dom';
+import React from "react";
+import { motion } from "framer-motion";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useNavigate } from "react-router-dom";
 import {
   getAccounts,
   saveAccounts,
   addAccount,
-  deleteAccount
-} from '@/services/accountService';
-import { getGroups } from '@/services/groupService';
+  deleteAccount,
+} from "@/services/accountService";
+import { getGroups } from "@/services/groupService";
 
-const emptyAccount = { username: '', password: '', groups: [] };
+const emptyAccount = {
+  username: "",
+  password: "",
+  groups: [],
+  hall: "",
+  manager: "",
+  team: "",
+};
 
 const IdManagement = () => {
   const navigate = useNavigate();
   const [accounts, setAccounts] = React.useState(() => getAccounts());
   const [newAccount, setNewAccount] = React.useState(emptyAccount);
   const groups = React.useMemo(() => getGroups(), []);
-  const [message, setMessage] = React.useState('');
+  const [message, setMessage] = React.useState("");
 
   const handleChange = (index, field, value) => {
     const updated = [...accounts];
@@ -41,7 +48,7 @@ const IdManagement = () => {
   const handleAdd = () => {
     const account = {
       ...newAccount,
-      id: Date.now().toString()
+      id: Date.now().toString(),
     };
     addAccount(account);
     const updated = getAccounts();
@@ -56,8 +63,8 @@ const IdManagement = () => {
 
   const handleSave = () => {
     saveAccounts(accounts);
-    setMessage('已保存');
-    setTimeout(() => setMessage(''), 2000);
+    setMessage("已保存");
+    setTimeout(() => setMessage(""), 2000);
   };
 
   return (
@@ -70,58 +77,70 @@ const IdManagement = () => {
       <h1 className="text-3xl font-bold mb-8 text-gray-800">ID 编辑</h1>
       <Card className="shadow">
         <CardContent className="p-0 overflow-x-auto">
-      <table className="w-full text-left border">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="p-2 border">账户</th>
-            <th className="p-2 border">用户名</th>
-            <th className="p-2 border">密码</th>
-            <th className="p-2 border">分组</th>
-            <th className="p-2 border"></th>
-          </tr>
-        </thead>
-        <tbody>
-          {accounts.map((acc, idx) => (
-            <tr key={acc.id} className="border-t">
-              <td className="p-2">账户 {idx + 1}</td>
-              <td className="p-2">
-                <Input
-                  type="text"
-                  value={acc.username}
-                  onChange={(e) => handleChange(idx, 'username', e.target.value)}
-                />
-              </td>
-              <td className="p-2">
-                <Input
-                  type="text"
-                  value={acc.password}
-                  onChange={(e) => handleChange(idx, 'password', e.target.value)}
-                />
-              </td>
-              <td className="p-2">
-                <div className="flex flex-wrap gap-2">
-                  {groups.map((g) => (
-                    <label key={g.name} className="flex items-center space-x-1">
-                      <input
-                        type="checkbox"
-                        checked={(acc.groups || []).includes(g.name)}
-                        onChange={(e) => toggleGroup(idx, g.name, e.target.checked)}
-                        className="form-checkbox"
-                      />
-                      <span>{g.name}</span>
-                    </label>
-                  ))}
-                </div>
-              </td>
-              <td className="p-2">
-                <Button variant="destructive" onClick={() => handleDelete(idx)}>
-                  删除
-                </Button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+          <table className="w-full text-left border">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="p-2 border">账户</th>
+                <th className="p-2 border">用户名</th>
+                <th className="p-2 border">密码</th>
+                <th className="p-2 border">分组</th>
+                <th className="p-2 border"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {accounts.map((acc, idx) => (
+                <tr key={acc.id} className="border-t">
+                  <td className="p-2">账户 {idx + 1}</td>
+                  <td className="p-2">
+                    <Input
+                      type="text"
+                      value={acc.username}
+                      onChange={(e) =>
+                        handleChange(idx, "username", e.target.value)
+                      }
+                    />
+                  </td>
+                  <td className="p-2">
+                    <Input
+                      type="text"
+                      value={acc.password}
+                      onChange={(e) =>
+                        handleChange(idx, "password", e.target.value)
+                      }
+                    />
+                  </td>
+                  <td className="p-2">
+                    <div className="flex flex-wrap gap-2">
+                      {groups.map((g) => (
+                        <label
+                          key={g.name}
+                          className="flex items-center space-x-1"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={(acc.groups || []).includes(g.name)}
+                            onChange={(e) =>
+                              toggleGroup(idx, g.name, e.target.checked)
+                            }
+                            className="form-checkbox"
+                          />
+                          <span>{g.name}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </td>
+                  <td className="p-2">
+                    <Button
+                      variant="destructive"
+                      onClick={() => handleDelete(idx)}
+                    >
+                      删除
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </CardContent>
       </Card>
       <Card className="shadow mt-6">
@@ -132,13 +151,17 @@ const IdManagement = () => {
           <Input
             type="text"
             value={newAccount.username}
-            onChange={(e) => setNewAccount({ ...newAccount, username: e.target.value })}
+            onChange={(e) =>
+              setNewAccount({ ...newAccount, username: e.target.value })
+            }
             placeholder="用户名"
           />
           <Input
             type="text"
             value={newAccount.password}
-            onChange={(e) => setNewAccount({ ...newAccount, password: e.target.value })}
+            onChange={(e) =>
+              setNewAccount({ ...newAccount, password: e.target.value })
+            }
             placeholder="密码"
           />
           <div className="flex flex-wrap gap-2">
@@ -163,15 +186,13 @@ const IdManagement = () => {
               </label>
             ))}
           </div>
-         <Button onClick={handleAdd}>添加</Button>
+          <Button onClick={handleAdd}>添加</Button>
         </CardContent>
       </Card>
-      {message && (
-        <div className="mt-4 text-green-600 text-sm">{message}</div>
-      )}
+      {message && <div className="mt-4 text-green-600 text-sm">{message}</div>}
       <div className="mt-6 flex justify-center gap-4">
         <Button onClick={handleSave}>保存</Button>
-        <Button onClick={() => navigate('/group-management')}>分组管理</Button>
+        <Button onClick={() => navigate("/group-management")}>分组管理</Button>
         <Button variant="secondary" onClick={() => navigate(-1)}>
           返回
         </Button>

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { mockLogin } from '../services/authService';
+import { login as apiLogin } from '../services/authService';
 import { getScheduleByDate, addSchedule, updateSchedule } from '../services/scheduleService';
 
 const ApiContext = createContext();
@@ -25,10 +25,23 @@ export function ApiProvider({ children }) {
   const login = async (username, password) => {
     try {
       // 使用模拟登录（开发阶段）
-      const result = await mockLogin(username, password);
-      setCurrentUser(result.user);
-      localStorage.setItem('currentUser', JSON.stringify(result.user));
-      return result.user;
+      const result = await apiLogin(username, password);
+      let role = '';
+      if (result.user.groups?.includes('管理员')) {
+        role = 'admin';
+      } else if (result.user.groups?.includes('主持')) {
+        role = 'host';
+      } else if (
+        result.user.groups?.some((g) =>
+          ['厅管', '预备厅管', '多厅厅管'].includes(g)
+        )
+      ) {
+        role = 'manager';
+      }
+      const userWithRole = { ...result.user, role };
+      setCurrentUser(userWithRole);
+      localStorage.setItem('currentUser', JSON.stringify(userWithRole));
+      return userWithRole;
     } catch (error) {
       console.error("Login error:", error);
       throw error;
@@ -42,12 +55,12 @@ export function ApiProvider({ children }) {
   };
   
   // 获取档表
-  const getSchedule = async (date) => {
+  const getSchedule = async (date, hall = '') => {
     try {
       const dateStr = date instanceof Date ? date.toISOString().split('T')[0] : date;
       
       // 使用缓存机制提高加载速度
-      const cacheKey = `schedule_${dateStr}`;
+      const cacheKey = `schedule_${hall}_${dateStr}`;
       const cachedData = sessionStorage.getItem(cacheKey);
       
       // 如果有缓存数据，直接返回
@@ -55,7 +68,7 @@ export function ApiProvider({ children }) {
         return JSON.parse(cachedData);
       }
       
-      const schedule = await getScheduleByDate(dateStr);
+      const schedule = await getScheduleByDate(dateStr, hall);
       
       // 如果没有找到档表，创建一个空的
       if (!schedule) {
@@ -78,12 +91,13 @@ export function ApiProvider({ children }) {
   };
   
   // 保存档表
-  const saveSchedule = async (scheduleData) => {
+  const saveSchedule = async (scheduleData, hall = '') => {
     try {
       let result;
       // 确保数据格式正确
       const validatedData = {
         ...scheduleData,
+        hall,
         // 确保日期格式正确
         date: scheduleData.date instanceof Date ? scheduleData.date : new Date(scheduleData.date)
       };
@@ -92,14 +106,22 @@ export function ApiProvider({ children }) {
         // 更新现有档表
         result = await updateSchedule(scheduleData.id, validatedData);
       } else {
-        // 创建新档表
-        result = await addSchedule(validatedData);
+        // 创建新档表，移除可能的id字段以便自增
+        const { id, ...dataWithoutId } = validatedData;
+        result = await addSchedule(dataWithoutId);
       }
       
       // 减少延迟时间，提高响应速度
       await new Promise(resolve => setTimeout(resolve, 300));
-      
-      return result;
+      const savedId = scheduleData.id ? scheduleData.id : result;
+
+      // 更新缓存，保证返回页面后能加载到最新数据
+      const dateStr = validatedData.date.toISOString().split('T')[0];
+      const cacheKey = `schedule_${hall}_${dateStr}`;
+      const savedSchedule = { ...validatedData, id: savedId };
+      sessionStorage.setItem(cacheKey, JSON.stringify(savedSchedule));
+
+      return savedId;
     } catch (error) {
       console.error("Save schedule error:", error);
       // 重新抛出错误，以便UI层可以处理

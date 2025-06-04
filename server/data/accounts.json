@@ -1,0 +1,8 @@
+[
+  {
+    "id": "1",
+    "username": "admin",
+    "password": "111",
+    "groups": ["管理员"]
+  }
+]

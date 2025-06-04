@@ -40,10 +40,8 @@ const LoginPage = () => {
     setLoading(true);
     try {
       const user = await login(username, password);
-      if (user.role === "admin") {
+      if (user) {
         navigate("/hall-admin-dashboard");
-      } else if (user.role === "host") {
-        navigate("/host-dashboard");
       }
     } catch (error) {
       setError("用户名或密码错误");
@@ -192,7 +190,7 @@ const HallAdminDashboard = ({ navigate }) => {
       className="p-6 text-center relative"
     >
       <LogoutButton />
-      <h1 className="text-4xl font-bold mb-8 text-gray-800">厅管后台管理</h1>
+      <h1 className="text-4xl font-bold mb-8 text-gray-800">功能菜单</h1>
       <div className="flex justify-center gap-6 flex-wrap">
         <ButtonItem perm="档表管理" to="/schedule-management">
           档表管理

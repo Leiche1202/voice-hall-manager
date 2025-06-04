@@ -32,7 +32,9 @@ export function ApiProvider({ children }) {
       } else if (result.user.groups?.includes('主持')) {
         role = 'host';
       } else if (
-        result.user.groups?.some((g) => g === '厅管' || g === '预备厅管')
+        result.user.groups?.some((g) =>
+          ['厅管', '预备厅管', '多厅厅管'].includes(g)
+        )
       ) {
         role = 'manager';
       }

@@ -7,7 +7,7 @@ export const PERMISSIONS = [
   '团队管理'
 ];
 
-const GROUPS_VERSION = 2;
+const GROUPS_VERSION = 3;
 
 function buildDefaultPerms(view = false, edit = false) {
   return PERMISSIONS.reduce((acc, p) => {
@@ -20,6 +20,15 @@ export const DEFAULT_GROUPS = [
   {
     name: '管理员',
     permissions: buildDefaultPerms(true, true)
+  },
+  {
+    name: '多厅厅管',
+    permissions: {
+      ...buildDefaultPerms(false, false),
+      '档表管理': { view: true, edit: true },
+      '工资管理': { view: true, edit: true },
+      '分厅管理': { view: true, edit: true },
+    }
   },
   {
     name: '厅管',

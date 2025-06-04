@@ -17,7 +17,9 @@ const HallManagement = () => {
   const hallManagers = React.useMemo(
     () =>
       accounts
-        .filter((a) => (a.groups || []).includes("厅管"))
+        .filter((a) =>
+          (a.groups || []).some((g) => g === "厅管" || g === "多厅厅管")
+        )
         .map((a) => a.username),
     [accounts],
   );

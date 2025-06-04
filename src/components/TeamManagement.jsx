@@ -12,7 +12,7 @@ import {
   deleteTeam,
 } from "@/services/teamService";
 
-const emptyTeam = { name: "", owner: "", member: "", parent: "" };
+const emptyTeam = { name: "", owner: "", parent: "" };
 
 const TeamManagement = () => {
   const navigate = useNavigate();
@@ -21,7 +21,9 @@ const TeamManagement = () => {
   const managers = React.useMemo(
     () =>
       getAccounts()
-        .filter((a) => (a.groups || []).includes("厅管"))
+        .filter((a) =>
+          (a.groups || []).some((g) => g === "厅管" || g === "多厅厅管")
+        )
         .map((a) => a.username),
     [],
   );
@@ -60,7 +62,6 @@ const TeamManagement = () => {
               <tr>
                 <th className="p-2 border">团队名称</th>
                 <th className="p-2 border">所有者</th>
-                <th className="p-2 border">隶属者</th>
                 <th className="p-2 border">上级厅管</th>
                 <th className="p-2 border"></th>
               </tr>
@@ -83,22 +84,6 @@ const TeamManagement = () => {
                       value={team.owner}
                       onChange={(e) =>
                         handleChange(idx, "owner", e.target.value)
-                      }
-                    >
-                      <option value="">未指定</option>
-                      {managers.map((m) => (
-                        <option key={m} value={m}>
-                          {m}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                  <td className="p-2">
-                    <select
-                      className="border rounded px-2 py-1"
-                      value={team.member}
-                      onChange={(e) =>
-                        handleChange(idx, "member", e.target.value)
                       }
                     >
                       <option value="">未指定</option>
@@ -156,18 +141,6 @@ const TeamManagement = () => {
             onChange={(e) => setNewTeam({ ...newTeam, owner: e.target.value })}
           >
             <option value="">选择团队所有者</option>
-            {managers.map((m) => (
-              <option key={m} value={m}>
-                {m}
-              </option>
-            ))}
-          </select>
-          <select
-            className="border rounded px-2 py-1 w-full"
-            value={newTeam.member}
-            onChange={(e) => setNewTeam({ ...newTeam, member: e.target.value })}
-          >
-            <option value="">选择隶属者</option>
             {managers.map((m) => (
               <option key={m} value={m}>
                 {m}

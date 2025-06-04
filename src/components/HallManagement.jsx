@@ -5,12 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
 import { getAccounts } from "@/services/accountService";
-import { getHalls, addHall, deleteHall, updateHall } from "@/services/hallService";
+import { getHalls, addHall, deleteHall, saveHalls } from "@/services/hallService";
 import { getTeams } from "@/services/teamService";
 
 const HallManagement = () => {
   const navigate = useNavigate();
   const [halls, setHalls] = React.useState(() => getHalls());
+  const [dirty, setDirty] = React.useState(false);
   const [newHall, setNewHall] = React.useState({ name: "", manager: "", team: "" });
   const accounts = React.useMemo(() => getAccounts(), []);
   const teams = React.useMemo(() => getTeams(), []);
@@ -29,18 +30,20 @@ const HallManagement = () => {
     addHall({ id: Date.now().toString(), ...newHall, name: newHall.name.trim() });
     setHalls(getHalls());
     setNewHall({ name: "", manager: "", team: "" });
+    setDirty(false);
   };
 
   const handleDeleteHall = (index) => {
     deleteHall(index);
     setHalls(getHalls());
+    setDirty(false);
   };
 
   const handleChangeHall = (index, field, value) => {
     const updated = [...halls];
     updated[index][field] = value;
     setHalls(updated);
-    updateHall(index, updated[index]);
+    setDirty(true);
   };
 
 
@@ -153,7 +156,10 @@ const HallManagement = () => {
           </table>
         </CardContent>
       </Card>
-      <div className="mt-6 flex justify-center">
+      <div className="mt-6 flex justify-center gap-4">
+        <Button onClick={() => { saveHalls(halls); setDirty(false); }} disabled={!dirty}>
+          保存修改
+        </Button>
         <Button variant="secondary" onClick={() => navigate(-1)}>
           返回
         </Button>

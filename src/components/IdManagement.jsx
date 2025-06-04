@@ -24,17 +24,13 @@ const IdManagement = () => {
   const [newAccount, setNewAccount] = React.useState(emptyAccount);
   const groups = React.useMemo(() => getGroups(), []);
 
-  const saveTimer = React.useRef();
-  const debouncedSave = React.useCallback((data) => {
-    clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(() => saveAccounts(data), 300);
-  }, []);
+  const [dirty, setDirty] = React.useState(false);
 
   const handleChange = (index, field, value) => {
     const updated = [...accounts];
     updated[index][field] = value;
     setAccounts(updated);
-    debouncedSave(updated);
+    setDirty(true);
   };
 
   const toggleGroup = (index, groupName, checked) => {
@@ -44,7 +40,7 @@ const IdManagement = () => {
       ? Array.from(new Set([...current, groupName]))
       : current.filter((g) => g !== groupName);
     setAccounts(updated);
-    debouncedSave(updated);
+    setDirty(true);
   };
 
   const handleAdd = () => {
@@ -62,16 +58,14 @@ const IdManagement = () => {
     const updated = getAccounts();
     setAccounts(updated);
     setNewAccount(emptyAccount);
+    setDirty(false);
   };
 
   const handleDelete = (index) => {
     deleteAccount(index);
     setAccounts(getAccounts());
+    setDirty(false);
   };
-
-  React.useEffect(() => {
-    return () => clearTimeout(saveTimer.current);
-  }, []);
 
 
   return (
@@ -150,6 +144,11 @@ const IdManagement = () => {
           </table>
         </CardContent>
       </Card>
+      <div className="mt-4">
+        <Button onClick={() => { saveAccounts(accounts); setDirty(false); }} disabled={!dirty}>
+          保存修改
+        </Button>
+      </div>
       <Card className="shadow mt-6">
         <CardHeader>
           <CardTitle className="text-xl">新增账户</CardTitle>

@@ -193,24 +193,28 @@ const HallAdminDashboard = ({ navigate }) => {
       <h1 className="text-3xl font-bold mb-6 text-gray-800">后台管理</h1>
       <div className="flex">
         <div className="w-48 flex flex-col gap-4 mr-6">
-          <ButtonItem perm="档表管理" to="/schedule-management">
-            档表管理
-          </ButtonItem>
-          <ButtonItem perm="工资管理" to="/salary-management">
-            工资管理
-          </ButtonItem>
-          <ButtonItem perm="ID 编辑" to="/id-management">
-            ID 编辑
-          </ButtonItem>
-          <ButtonItem perm="权限管理" to="/permission-management">
-            权限管理
-          </ButtonItem>
-          <ButtonItem perm="分厅管理" to="/hall-management">
-            分厅管理
-          </ButtonItem>
-          <ButtonItem perm="团队管理" to="/team-management">
-            团队管理
-          </ButtonItem>
+          <div className="border rounded-lg p-2 mb-4 space-y-2">
+            <ButtonItem perm="档表管理" to="/schedule-management">
+              档表管理
+            </ButtonItem>
+            <ButtonItem perm="工资管理" to="/salary-management">
+              工资管理
+            </ButtonItem>
+          </div>
+          <div className="border rounded-lg p-2 space-y-2">
+            <ButtonItem perm="ID 编辑" to="/id-management">
+              ID 编辑
+            </ButtonItem>
+            <ButtonItem perm="权限管理" to="/permission-management">
+              权限管理
+            </ButtonItem>
+            <ButtonItem perm="分厅管理" to="/hall-management">
+              分厅管理
+            </ButtonItem>
+            <ButtonItem perm="团队管理" to="/team-management">
+              团队管理
+            </ButtonItem>
+          </div>
         </div>
         <div className="flex-1 flex items-center justify-center text-gray-500">
           <span>数据展示区域</span>
@@ -594,7 +598,7 @@ const ScheduleManagement = () => {
                     <li key={name}>
                       <Button
                         onClick={() => handleSelectHost(name)}
-                        className="w-full text-left px-4 py-2 rounded-md hover:bg-purple-100 transition-colors duration-200 text-gray-700"
+                        className="w-full text-left px-4 py-2 rounded-md bg-purple-600 text-white hover:bg-purple-700 transition-colors duration-200"
                       >
                         {name}
                       </Button>

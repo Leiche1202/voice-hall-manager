@@ -17,6 +17,7 @@ const emptyTeam = { name: "", owner: "", parent: "" };
 const TeamManagement = () => {
   const navigate = useNavigate();
   const [teams, setTeams] = React.useState(() => getTeams());
+  const [dirty, setDirty] = React.useState(false);
   const [newTeam, setNewTeam] = React.useState(emptyTeam);
   const managers = React.useMemo(
     () =>
@@ -32,7 +33,7 @@ const TeamManagement = () => {
     const updated = [...teams];
     updated[index][field] = value;
     setTeams(updated);
-    saveTeams(updated);
+    setDirty(true);
   };
 
   const handleAdd = () => {
@@ -40,11 +41,13 @@ const TeamManagement = () => {
     addTeam({ ...newTeam, id: Date.now().toString() });
     setTeams(getTeams());
     setNewTeam(emptyTeam);
+    setDirty(false);
   };
 
   const handleDelete = (index) => {
     deleteTeam(index);
     setTeams(getTeams());
+    setDirty(false);
   };
 
   return (
@@ -162,7 +165,10 @@ const TeamManagement = () => {
           <Button onClick={handleAdd}>添加</Button>
         </CardContent>
       </Card>
-      <div className="mt-6 flex justify-center">
+      <div className="mt-6 flex justify-center gap-4">
+        <Button onClick={() => { saveTeams(teams); setDirty(false); }} disabled={!dirty}>
+          保存修改
+        </Button>
         <Button variant="secondary" onClick={() => navigate(-1)}>
           返回
         </Button>

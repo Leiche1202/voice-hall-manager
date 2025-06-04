@@ -9,6 +9,7 @@ const PermissionManagement = () => {
   const navigate = useNavigate();
   const [groups, setGroups] = React.useState(() => getGroups());
 
+  const [dirty, setDirty] = React.useState(false);
   const togglePermission = (gIndex, perm, type, checked) => {
     const updated = [...groups];
     const current = updated[gIndex].permissions[perm] || {
@@ -17,7 +18,7 @@ const PermissionManagement = () => {
     };
     updated[gIndex].permissions[perm] = { ...current, [type]: checked };
     setGroups(updated);
-    saveGroups(updated);
+    setDirty(true);
   };
 
   return (
@@ -106,7 +107,10 @@ const PermissionManagement = () => {
           </table>
         </CardContent>
       </Card>
-      <div className="mt-6 flex justify-center">
+      <div className="mt-6 flex justify-center gap-4">
+        <Button onClick={() => { saveGroups(groups); setDirty(false); }} disabled={!dirty}>
+          保存修改
+        </Button>
         <Button variant="secondary" onClick={() => navigate(-1)}>
           返回
         </Button>

@@ -8,10 +8,18 @@ export const PERMISSIONS = [
 ];
 
 const API = '/api/groups';
+// Determine the correct path for the fallback groups file
+const LOCAL_GROUPS_URL = `${import.meta.env.BASE_URL}groups.json`;
 
 export async function getGroups() {
-  const res = await fetch(API);
-  return res.json();
+  try {
+    const res = await fetch(API);
+    if (!res.ok) throw new Error('network');
+    return await res.json();
+  } catch (err) {
+    const localRes = await fetch(LOCAL_GROUPS_URL);
+    return localRes.json();
+  }
 }
 
 export async function updateGroup(id, group) {

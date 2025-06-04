@@ -1,8 +1,17 @@
 const API = '/api/accounts';
 
+// Determine the correct path for the fallback accounts file
+const LOCAL_ACCOUNTS_URL = `${import.meta.env.BASE_URL}accounts.json`;
+
 export async function getAccounts() {
-  const res = await fetch(API);
-  return res.json();
+  try {
+    const res = await fetch(API);
+    if (!res.ok) throw new Error('network');
+    return await res.json();
+  } catch (err) {
+    const localRes = await fetch(LOCAL_ACCOUNTS_URL);
+    return localRes.json();
+  }
 }
 
 export async function addAccount(account) {

@@ -1,3 +1,6 @@
+import { collection, getDocs, doc, setDoc } from 'firebase/firestore';
+import { db } from './firebase';
+
 export const PERMISSIONS = [
   '档表管理',
   '工资管理',
@@ -7,27 +10,15 @@ export const PERMISSIONS = [
   '团队管理'
 ];
 
-const API = '/api/groups';
-// Local fallback when the API is unreachable
-const LOCAL_GROUPS_URL = '/groups.json';
-
+const groupsCol = collection(db, 'groups');
 
 export async function getGroups() {
-  try {
-    const res = await fetch(API);
-    if (!res.ok) throw new Error('network');
-    return await res.json();
-  } catch (err) {
-    const localRes = await fetch(LOCAL_GROUPS_URL);
-    return localRes.json();
-  }
+  const snap = await getDocs(groupsCol);
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
 export async function updateGroup(id, group) {
-  const res = await fetch(`${API}/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(group)
-  });
-  return res.json();
+  await setDoc(doc(db, 'groups', id), group);
+  return true;
 }
+

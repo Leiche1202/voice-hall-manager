@@ -1,40 +1,36 @@
-const API = '/api/halls';
+import { collection, getDocs, addDoc, doc, setDoc, deleteDoc } from 'firebase/firestore';
+import { db } from './firebase';
+import { getTeams } from './teamService';
+
+const hallsCol = collection(db, 'halls');
 
 export async function getHalls() {
-  const res = await fetch(API);
-  return res.json();
+  const snap = await getDocs(hallsCol);
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
 export async function addHall(hall) {
-  const res = await fetch(API, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(hall)
-  });
-  return res.json();
+  const ref = await addDoc(hallsCol, hall);
+  return ref.id;
 }
 
 export async function updateHall(id, hall) {
-  const res = await fetch(`${API}/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(hall)
-  });
-  return res.json();
+  await setDoc(doc(db, 'halls', id), hall);
+  return true;
 }
 
 export async function deleteHall(id) {
-  const res = await fetch(`${API}/${id}`, { method: 'DELETE' });
-  return res.json();
+  await deleteDoc(doc(db, 'halls', id));
+  return true;
 }
 
 export async function getAccessibleHalls(userId) {
   const all = await getHalls();
   if (!userId) return all;
-  const teamsRes = await fetch('/api/teams');
-  const teams = await teamsRes.json();
+  const teams = await getTeams();
   const teamIds = teams
-    .filter((t) => t.ownerId === userId || t.parentId === userId)
-    .map((t) => t.id);
-  return all.filter((h) => h.managerId === userId || teamIds.includes(h.teamId));
+    .filter(t => t.ownerId === userId || t.parentId === userId)
+    .map(t => t.id);
+  return all.filter(h => h.managerId === userId || teamIds.includes(h.teamId));
 }
+

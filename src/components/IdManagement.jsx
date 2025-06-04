@@ -15,6 +15,7 @@ import { getGroups } from "@/services/groupService";
 const emptyAccount = {
   username: "",
   password: "",
+  phone: "",
   groups: [],
 };
 
@@ -56,6 +57,10 @@ const IdManagement = () => {
     if (!name) return;
     if (accounts.some((a) => a.username === name)) {
       alert('用户名已存在');
+      return;
+    }
+    if (newAccount.phone && accounts.some((a) => a.phone === newAccount.phone)) {
+      alert('手机号已存在');
       return;
     }
     const account = {
@@ -113,6 +118,7 @@ const IdManagement = () => {
               <tr>
                 <th className="p-2 border">账户</th>
                 <th className="p-2 border">用户名</th>
+                <th className="p-2 border">手机号</th>
                 <th className="p-2 border">密码</th>
                 <th className="p-2 border">分组</th>
                 <th className="p-2 border"></th>
@@ -122,21 +128,30 @@ const IdManagement = () => {
               {accounts.map((acc, idx) => (
                 <tr key={acc.id} className="border-t">
                   <td className="p-2">账户 {idx + 1}</td>
-                  <td className="p-2">
-                    <Input
-                      type="text"
-                      value={acc.username}
-                      onChange={(e) =>
-                        handleChange(idx, "username", e.target.value)
-                      }
-                    />
-                  </td>
-                  <td className="p-2">
-                    <Input
-                      type="text"
-                      value={acc.password}
-                      onChange={(e) =>
-                        handleChange(idx, "password", e.target.value)
+                <td className="p-2">
+                  <Input
+                    type="text"
+                    value={acc.username}
+                    onChange={(e) =>
+                      handleChange(idx, "username", e.target.value)
+                    }
+                  />
+                </td>
+                <td className="p-2">
+                  <Input
+                    type="text"
+                    value={acc.phone}
+                    onChange={(e) =>
+                      handleChange(idx, "phone", e.target.value)
+                    }
+                  />
+                </td>
+                <td className="p-2">
+                  <Input
+                    type="text"
+                    value={acc.password}
+                    onChange={(e) =>
+                      handleChange(idx, "password", e.target.value)
                       }
                     />
                   </td>
@@ -191,6 +206,14 @@ const IdManagement = () => {
               setNewAccount({ ...newAccount, username: e.target.value })
             }
             placeholder="用户名"
+          />
+          <Input
+            type="text"
+            value={newAccount.phone}
+            onChange={(e) =>
+              setNewAccount({ ...newAccount, phone: e.target.value })
+            }
+            placeholder="手机号"
           />
           <Input
             type="text"

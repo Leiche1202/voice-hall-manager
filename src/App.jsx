@@ -24,6 +24,7 @@ import PermissionManagement from "./components/PermissionManagement";
 import HallManagement from "./components/HallManagement";
 import TeamManagement from "./components/TeamManagement";
 import { getAccounts } from "./services/accountService";
+import { getGroups } from "./services/groupService";
 
 // 登录页
 const LoginPage = () => {
@@ -153,6 +154,35 @@ const HallAdminDashboardWrapper = () => {
 
 // 厅管后台
 const HallAdminDashboard = ({ navigate }) => {
+  const { currentUser } = useApi();
+  const groups = React.useMemo(() => getGroups(), []);
+
+  const permissions = React.useMemo(() => {
+    const perms = {};
+    currentUser?.groups?.forEach((name) => {
+      const g = groups.find((gr) => gr.name === name);
+      if (g) {
+        Object.entries(g.permissions).forEach(([p, val]) => {
+          if (val.view) perms[p] = true;
+        });
+      }
+    });
+    return perms;
+  }, [currentUser, groups]);
+
+  const ButtonItem = ({ perm, to, children }) =>
+    permissions[perm] ? (
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        transition={{ type: "spring", stiffness: 400, damping: 17 }}
+        className="bg-purple-600 text-white px-8 py-3 rounded-xl shadow-lg hover:bg-purple-700 transition-colors duration-200 text-lg"
+        onClick={() => navigate(to)}
+      >
+        {children}
+      </motion.button>
+    ) : null;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -163,60 +193,24 @@ const HallAdminDashboard = ({ navigate }) => {
       <LogoutButton />
       <h1 className="text-4xl font-bold mb-8 text-gray-800">厅管后台管理</h1>
       <div className="flex justify-center gap-6 flex-wrap">
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          transition={{ type: "spring", stiffness: 400, damping: 17 }}
-          className="bg-purple-600 text-white px-8 py-3 rounded-xl shadow-lg hover:bg-purple-700 transition-colors duration-200 text-lg"
-          onClick={() => navigate("/schedule-management")}
-        >
+        <ButtonItem perm="档表管理" to="/schedule-management">
           档表管理
-        </motion.button>
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          transition={{ type: "spring", stiffness: 400, damping: 17 }}
-          className="bg-purple-600 text-white px-8 py-3 rounded-xl shadow-lg hover:bg-purple-700 transition-colors duration-200 text-lg"
-          onClick={() => navigate("/salary-management")}
-        >
+        </ButtonItem>
+        <ButtonItem perm="工资管理" to="/salary-management">
           工资管理
-        </motion.button>
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          transition={{ type: "spring", stiffness: 400, damping: 17 }}
-          className="bg-purple-600 text-white px-8 py-3 rounded-xl shadow-lg hover:bg-purple-700 transition-colors duration-200 text-lg"
-          onClick={() => navigate("/id-management")}
-        >
+        </ButtonItem>
+        <ButtonItem perm="ID 编辑" to="/id-management">
           ID 编辑
-        </motion.button>
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          transition={{ type: "spring", stiffness: 400, damping: 17 }}
-          className="bg-purple-600 text-white px-8 py-3 rounded-xl shadow-lg hover:bg-purple-700 transition-colors duration-200 text-lg"
-          onClick={() => navigate("/permission-management")}
-        >
+        </ButtonItem>
+        <ButtonItem perm="权限管理" to="/permission-management">
           权限管理
-        </motion.button>
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          transition={{ type: "spring", stiffness: 400, damping: 17 }}
-          className="bg-purple-600 text-white px-8 py-3 rounded-xl shadow-lg hover:bg-purple-700 transition-colors duration-200 text-lg"
-          onClick={() => navigate("/hall-management")}
-        >
+        </ButtonItem>
+        <ButtonItem perm="分厅管理" to="/hall-management">
           分厅管理
-        </motion.button>
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          transition={{ type: "spring", stiffness: 400, damping: 17 }}
-          className="bg-purple-600 text-white px-8 py-3 rounded-xl shadow-lg hover:bg-purple-700 transition-colors duration-200 text-lg"
-          onClick={() => navigate("/team-management")}
-        >
+        </ButtonItem>
+        <ButtonItem perm="团队管理" to="/team-management">
           团队管理
-        </motion.button>
+        </ButtonItem>
       </div>
     </motion.div>
   );

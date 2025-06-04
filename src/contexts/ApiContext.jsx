@@ -31,7 +31,9 @@ export function ApiProvider({ children }) {
         role = 'admin';
       } else if (result.user.groups?.includes('主持')) {
         role = 'host';
-      } else if (result.user.groups?.includes('厅管')) {
+      } else if (
+        result.user.groups?.some((g) => g === '厅管' || g === '预备厅管')
+      ) {
         role = 'manager';
       }
       const userWithRole = { ...result.user, role };

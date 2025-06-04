@@ -98,8 +98,15 @@ export function ApiProvider({ children }) {
       
       // 减少延迟时间，提高响应速度
       await new Promise(resolve => setTimeout(resolve, 300));
-      
-      return result;
+      const savedId = scheduleData.id ? scheduleData.id : result;
+
+      // 更新缓存，保证返回页面后能加载到最新数据
+      const dateStr = validatedData.date.toISOString().split('T')[0];
+      const cacheKey = `schedule_${dateStr}`;
+      const savedSchedule = { id: savedId, ...validatedData };
+      sessionStorage.setItem(cacheKey, JSON.stringify(savedSchedule));
+
+      return savedId;
     } catch (error) {
       console.error("Save schedule error:", error);
       // 重新抛出错误，以便UI层可以处理

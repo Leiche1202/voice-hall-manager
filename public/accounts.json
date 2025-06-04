@@ -10,5 +10,23 @@
     "username": "manager",
     "password": "222",
     "groups": ["厅管"]
+  },
+  {
+    "id": 3,
+    "username": "multi",
+    "password": "333",
+    "groups": ["多厅厅管"]
+  },
+  {
+    "id": 4,
+    "username": "pre",
+    "password": "444",
+    "groups": ["预备厅管"]
+  },
+  {
+    "id": 5,
+    "username": "host",
+    "password": "555",
+    "groups": ["主持"]
   }
 ]

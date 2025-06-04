@@ -10,7 +10,7 @@ export async function getAccounts() {
     if (!res.ok) throw new Error('network');
     return await res.json();
   } catch (err) {
-
+    const localRes = await fetch(LOCAL_ACCOUNTS_URL);
     return localRes.json();
   }
 }

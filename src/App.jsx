@@ -20,7 +20,7 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { ApiProvider, useApi } from "./contexts/ApiContext";
 import IdManagement from "./components/IdManagement";
-import GroupManagement from "./components/GroupManagement";
+import PermissionManagement from "./components/PermissionManagement";
 import HallManagement from "./components/HallManagement";
 import TeamManagement from "./components/TeamManagement";
 import { getAccounts } from "./services/accountService";
@@ -195,9 +195,9 @@ const HallAdminDashboard = ({ navigate }) => {
           whileTap={{ scale: 0.95 }}
           transition={{ type: "spring", stiffness: 400, damping: 17 }}
           className="bg-purple-600 text-white px-8 py-3 rounded-xl shadow-lg hover:bg-purple-700 transition-colors duration-200 text-lg"
-          onClick={() => navigate("/group-management")}
+          onClick={() => navigate("/permission-management")}
         >
-          分组管理
+          权限管理
         </motion.button>
         <motion.button
           whileHover={{ scale: 1.05 }}
@@ -647,7 +647,7 @@ function App() {
             />
             <Route path="/salary-management" element={<SalaryManagement />} />
             <Route path="/id-management" element={<IdManagement />} />
-            <Route path="/group-management" element={<GroupManagement />} />
+            <Route path="/permission-management" element={<PermissionManagement />} />
             <Route path="/hall-management" element={<HallManagement />} />
             <Route path="/team-management" element={<TeamManagement />} />
             <Route path="*" element={<Navigate to="/" />} />

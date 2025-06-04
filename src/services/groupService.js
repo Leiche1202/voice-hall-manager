@@ -1,32 +1,61 @@
+export const PERMISSIONS = [
+  '档表管理',
+  '工资管理',
+  'ID 编辑',
+  '权限管理',
+  '分厅管理',
+  '团队管理'
+];
+
+const GROUPS_VERSION = 1;
+
+function buildDefaultPerms(view = false, edit = false) {
+  return PERMISSIONS.reduce((acc, p) => {
+    acc[p] = { view, edit };
+    return acc;
+  }, {});
+}
+
 export const DEFAULT_GROUPS = [
-  { name: '管理员', permissions: ['档表管理', '工资管理', 'ID 编辑', '分组管理'] },
-  { name: '厅管', permissions: ['档表管理', '工资管理'] },
-  { name: '主持', permissions: [] }
+  {
+    name: '管理员',
+    permissions: buildDefaultPerms(true, true)
+  },
+  {
+    name: '厅管',
+    permissions: {
+      ...buildDefaultPerms(false, false),
+      '档表管理': { view: true, edit: true },
+      '工资管理': { view: true, edit: true }
+    }
+  },
+  {
+    name: '主持',
+    permissions: {
+      ...buildDefaultPerms(false, false),
+      '档表管理': { view: true, edit: false }
+    }
+  }
 ];
 
 export function getGroups() {
+  const storedVer = Number(localStorage.getItem('groups_version') || '0');
   const stored = localStorage.getItem('groups');
-  return stored ? JSON.parse(stored) : DEFAULT_GROUPS.slice();
+  if (!stored || storedVer !== GROUPS_VERSION) {
+    localStorage.setItem('groups_version', GROUPS_VERSION);
+    localStorage.setItem('groups', JSON.stringify(DEFAULT_GROUPS));
+    return DEFAULT_GROUPS.slice();
+  }
+  return JSON.parse(stored);
 }
 
 export function saveGroups(groups) {
   localStorage.setItem('groups', JSON.stringify(groups));
-}
-
-export function addGroup(group) {
-  const groups = getGroups();
-  groups.push(group);
-  saveGroups(groups);
+  localStorage.setItem('groups_version', GROUPS_VERSION);
 }
 
 export function updateGroup(index, group) {
   const groups = getGroups();
   groups[index] = group;
-  saveGroups(groups);
-}
-
-export function deleteGroup(index) {
-  const groups = getGroups();
-  groups.splice(index, 1);
   saveGroups(groups);
 }

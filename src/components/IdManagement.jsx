@@ -23,7 +23,6 @@ const IdManagement = () => {
   const [accounts, setAccounts] = React.useState(() => getAccounts());
   const [newAccount, setNewAccount] = React.useState(emptyAccount);
   const groups = React.useMemo(() => getGroups(), []);
-  const [message, setMessage] = React.useState("");
 
   const handleChange = (index, field, value) => {
     const updated = [...accounts];
@@ -58,11 +57,6 @@ const IdManagement = () => {
     setAccounts(getAccounts());
   };
 
-  const handleSave = () => {
-    saveAccounts(accounts);
-    setMessage("已保存");
-    setTimeout(() => setMessage(""), 2000);
-  };
 
   return (
     <motion.div
@@ -186,10 +180,8 @@ const IdManagement = () => {
           <Button onClick={handleAdd}>添加</Button>
         </CardContent>
       </Card>
-      {message && <div className="mt-4 text-green-600 text-sm">{message}</div>}
       <div className="mt-6 flex justify-center gap-4">
-        <Button onClick={handleSave}>保存</Button>
-        <Button onClick={() => navigate("/group-management")}>分组管理</Button>
+        <Button onClick={() => navigate("/permission-management")}>权限管理</Button>
         <Button variant="secondary" onClick={() => navigate(-1)}>
           返回
         </Button>

@@ -7,8 +7,6 @@ import { useNavigate } from "react-router-dom";
 import {
   getAccounts,
   saveAccounts,
-  addAccount,
-  deleteAccount,
 } from "@/services/accountService";
 import { getGroups } from "@/services/groupService";
 
@@ -54,17 +52,14 @@ const IdManagement = () => {
       ...newAccount,
       id: Date.now().toString(),
     };
-    addAccount(account);
-    const updated = getAccounts();
-    setAccounts(updated);
+    setAccounts((prev) => [...prev, account]);
     setNewAccount(emptyAccount);
-    setDirty(false);
+    setDirty(true);
   };
 
   const handleDelete = (index) => {
-    deleteAccount(index);
-    setAccounts(getAccounts());
-    setDirty(false);
+    setAccounts((prev) => prev.filter((_, i) => i !== index));
+    setDirty(true);
   };
 
 

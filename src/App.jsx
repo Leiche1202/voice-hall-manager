@@ -86,6 +86,7 @@ const LoginPage = () => {
               placeholder="请输入用户名"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
               className="mt-1"
               disabled={loading}
             />
@@ -103,6 +104,7 @@ const LoginPage = () => {
               placeholder="请输入密码"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
               className="mt-1"
               disabled={loading}
             />
@@ -244,7 +246,7 @@ const HallAdminDashboard = ({ navigate }) => {
   );
 };
 
-// 主持人中心
+// 主持中心
 const HostDashboard = () => {
   return (
     <motion.div
@@ -254,7 +256,7 @@ const HostDashboard = () => {
       className="p-6 text-center relative"
     >
       <LogoutButton />
-      <h1 className="text-4xl font-bold mb-8 text-gray-800">主持人个人中心</h1>
+        <h1 className="text-4xl font-bold mb-8 text-gray-800">主持个人中心</h1>
       <div className="mt-8 space-y-6">
         <Card className="shadow-lg">
           <CardHeader>

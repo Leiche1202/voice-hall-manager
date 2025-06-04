@@ -21,7 +21,7 @@ export async function addAccount(account) {
     phone: account.phone || ''
   };
   const ref = await addDoc(accountsCol, withEmail);
-  return ref.id;
+  return { id: ref.id };
 }
 
 export async function updateAccount(id, account) {

@@ -41,8 +41,8 @@ export function ApiProvider({ children }) {
     return () => unsub();
   }, []);
 
-  const login = async (phone, password) => {
-    const result = await apiLogin(phone, password);
+  const login = async (email, password) => {
+    const result = await apiLogin(email, password);
     return result.user;
   };
 

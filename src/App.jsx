@@ -30,7 +30,7 @@ import { getHalls, getAccessibleHalls } from "./services/hallService";
 
 // 登录页
 const LoginPage = () => {
-  const [phone, setPhone] = React.useState("");
+  const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [error, setError] = React.useState("");
   const navigate = useNavigate();
@@ -40,12 +40,12 @@ const LoginPage = () => {
   const handleLogin = async () => {
     setLoading(true);
     try {
-      const user = await login(phone, password);
+      const user = await login(email, password);
       if (user) {
         navigate("/hall-admin-dashboard");
       }
     } catch (error) {
-      setError("手机号或密码错误");
+      setError("邮箱或密码错误");
     } finally {
       setLoading(false);
     }
@@ -76,17 +76,17 @@ const LoginPage = () => {
         <div className="space-y-4">
           <div>
             <Label
-              htmlFor="phone"
+              htmlFor="email"
               className="block text-sm font-medium text-gray-700"
             >
-              手机号
+              邮箱
             </Label>
             <Input
-              id="phone"
+              id="email"
               type="text"
-              placeholder="请输入手机号"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              placeholder="请输入邮箱"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
               className="mt-1"
               disabled={loading}

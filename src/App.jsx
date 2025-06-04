@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { ApiProvider, useApi } from "./contexts/ApiContext";
+import { VERSION } from "./version";
 import IdManagement from "./components/IdManagement";
 import PermissionManagement from "./components/PermissionManagement";
 import HallManagement from "./components/HallManagement";
@@ -695,6 +696,7 @@ function App() {
   return (
     <ApiProvider>
       <Router>
+        <div className="fixed top-2 right-2 text-xs text-gray-500">V {VERSION}</div>
         <AnimatePresence mode="wait">
           <Routes>
             <Route path="/" element={<LoginPage />} />

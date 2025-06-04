@@ -14,6 +14,14 @@ const PermissionManagement = () => {
   }, []);
 
   const [dirty, setDirty] = React.useState(false);
+  const [saveStatus, setSaveStatus] = React.useState("");
+
+  React.useEffect(() => {
+    if (saveStatus) {
+      const t = setTimeout(() => setSaveStatus(""), 3000);
+      return () => clearTimeout(t);
+    }
+  }, [saveStatus]);
   const togglePermission = (gIndex, perm, type, checked) => {
     const updated = [...groups];
     const current = updated[gIndex].permissions[perm] || {
@@ -33,6 +41,13 @@ const PermissionManagement = () => {
       className="p-6 text-center relative"
     >
       <h1 className="text-3xl font-bold mb-8 text-gray-800">权限管理</h1>
+      {saveStatus && (
+        <div
+          className={`mb-4 p-3 rounded-md text-center ${saveStatus.includes('失败') ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}
+        >
+          {saveStatus}
+        </div>
+      )}
       <Card className="shadow">
         <CardContent className="p-0 overflow-x-auto">
           <table className="w-full text-center border">
@@ -114,10 +129,17 @@ const PermissionManagement = () => {
       <div className="mt-6 flex justify-center gap-4">
         <Button
           onClick={async () => {
-            for (const g of groups) {
-              await updateGroup(g.id, g);
+            setSaveStatus('正在保存...');
+            try {
+              for (const g of groups) {
+                await updateGroup(g.id, g);
+              }
+              setDirty(false);
+              setSaveStatus('保存成功');
+            } catch (e) {
+              console.error(e);
+              setSaveStatus('保存失败');
             }
-            setDirty(false);
           }}
           disabled={!dirty}
         >

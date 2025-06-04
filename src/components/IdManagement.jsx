@@ -34,6 +34,14 @@ const IdManagement = () => {
   }, []);
 
   const [dirty, setDirty] = React.useState(false);
+  const [saveStatus, setSaveStatus] = React.useState("");
+
+  React.useEffect(() => {
+    if (saveStatus) {
+      const t = setTimeout(() => setSaveStatus(""), 3000);
+      return () => clearTimeout(t);
+    }
+  }, [saveStatus]);
 
   const handleChange = (index, field, value) => {
     const updated = [...accounts];
@@ -85,21 +93,28 @@ const IdManagement = () => {
   };
 
   const handleSave = async () => {
-    for (const id of removedIds) {
-      await deleteAccount(id);
-    }
-    for (const acc of accounts) {
-      if (acc._new) {
-        const saved = await addAccount(acc);
-        acc.id = saved.id;
-        delete acc._new;
-      } else {
-        await updateAccount(acc.id, acc);
+    setSaveStatus("正在保存...");
+    try {
+      for (const id of removedIds) {
+        await deleteAccount(id);
       }
+      for (const acc of accounts) {
+        if (acc._new) {
+          const saved = await addAccount(acc);
+          acc.id = saved.id;
+          delete acc._new;
+        } else {
+          await updateAccount(acc.id, acc);
+        }
+      }
+      setRemovedIds([]);
+      setAccounts([...accounts]);
+      setDirty(false);
+      setSaveStatus("保存成功");
+    } catch (e) {
+      console.error(e);
+      setSaveStatus("保存失败");
     }
-    setRemovedIds([]);
-    setAccounts([...accounts]);
-    setDirty(false);
   };
 
 
@@ -111,6 +126,13 @@ const IdManagement = () => {
       className="p-6 text-center relative"
     >
       <h1 className="text-3xl font-bold mb-8 text-gray-800">用户编辑</h1>
+      {saveStatus && (
+        <div
+          className={`mb-4 p-3 rounded-md text-center ${saveStatus.includes('失败') ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}
+        >
+          {saveStatus}
+        </div>
+      )}
       <Card className="shadow">
         <CardContent className="p-0 overflow-x-auto">
           <table className="w-full text-left border">

@@ -16,6 +16,14 @@ const HallManagement = () => {
   const [removedIds, setRemovedIds] = React.useState([]);
   const [accounts, setAccounts] = React.useState([]);
   const [teams, setTeams] = React.useState([]);
+  const [saveStatus, setSaveStatus] = React.useState("");
+
+  React.useEffect(() => {
+    if (saveStatus) {
+      const t = setTimeout(() => setSaveStatus(""), 3000);
+      return () => clearTimeout(t);
+    }
+  }, [saveStatus]);
 
   React.useEffect(() => {
     getHalls().then(setHalls);
@@ -67,21 +75,28 @@ const HallManagement = () => {
   };
 
   const handleSave = async () => {
-    for (const id of removedIds) {
-      await deleteHall(id);
-    }
-    for (const hall of halls) {
-      if (hall._new) {
-        const saved = await addHall(hall);
-        hall.id = saved.id;
-        delete hall._new;
-      } else {
-        await updateHall(hall.id, hall);
+    setSaveStatus("正在保存...");
+    try {
+      for (const id of removedIds) {
+        await deleteHall(id);
       }
+      for (const hall of halls) {
+        if (hall._new) {
+          const saved = await addHall(hall);
+          hall.id = saved.id;
+          delete hall._new;
+        } else {
+          await updateHall(hall.id, hall);
+        }
+      }
+      setRemovedIds([]);
+      setHalls([...halls]);
+      setDirty(false);
+      setSaveStatus("保存成功");
+    } catch (e) {
+      console.error(e);
+      setSaveStatus("保存失败");
     }
-    setRemovedIds([]);
-    setHalls([...halls]);
-    setDirty(false);
   };
 
 
@@ -93,6 +108,13 @@ const HallManagement = () => {
       className="p-6 text-center relative"
     >
       <h1 className="text-3xl font-bold mb-8 text-gray-800">分厅管理</h1>
+      {saveStatus && (
+        <div
+          className={`mb-4 p-3 rounded-md text-center ${saveStatus.includes('失败') ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}
+        >
+          {saveStatus}
+        </div>
+      )}
       <Card className="shadow mb-6">
         <CardHeader>
           <CardTitle className="text-xl">新增分厅</CardTitle>

@@ -16,6 +16,14 @@ const TeamManagement = () => {
   const [newTeam, setNewTeam] = React.useState(emptyTeam);
   const [managers, setManagers] = React.useState([]);
   const [removedIds, setRemovedIds] = React.useState([]);
+  const [saveStatus, setSaveStatus] = React.useState("");
+
+  React.useEffect(() => {
+    if (saveStatus) {
+      const t = setTimeout(() => setSaveStatus(""), 3000);
+      return () => clearTimeout(t);
+    }
+  }, [saveStatus]);
 
   React.useEffect(() => {
     getTeams().then(setTeams);
@@ -59,21 +67,28 @@ const TeamManagement = () => {
   };
 
   const handleSave = async () => {
-    for (const id of removedIds) {
-      await deleteTeam(id);
-    }
-    for (const team of teams) {
-      if (team._new) {
-        const saved = await addTeam(team);
-        team.id = saved.id;
-        delete team._new;
-      } else {
-        await updateTeam(team.id, team);
+    setSaveStatus("正在保存...");
+    try {
+      for (const id of removedIds) {
+        await deleteTeam(id);
       }
+      for (const team of teams) {
+        if (team._new) {
+          const saved = await addTeam(team);
+          team.id = saved.id;
+          delete team._new;
+        } else {
+          await updateTeam(team.id, team);
+        }
+      }
+      setRemovedIds([]);
+      setTeams([...teams]);
+      setDirty(false);
+      setSaveStatus("保存成功");
+    } catch (e) {
+      console.error(e);
+      setSaveStatus("保存失败");
     }
-    setRemovedIds([]);
-    setTeams([...teams]);
-    setDirty(false);
   };
 
   return (
@@ -84,6 +99,13 @@ const TeamManagement = () => {
       className="p-6 text-center relative"
     >
       <h1 className="text-3xl font-bold mb-8 text-gray-800">团队管理</h1>
+      {saveStatus && (
+        <div
+          className={`mb-4 p-3 rounded-md text-center ${saveStatus.includes('失败') ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}
+        >
+          {saveStatus}
+        </div>
+      )}
       <Card className="shadow">
         <CardContent className="p-0 overflow-x-auto">
           <table className="w-full text-left border">

@@ -1,7 +1,7 @@
 const API = '/api/accounts';
 
 // Local fallback when the API is unreachable
-const LOCAL_ACCOUNTS_URL = 'accounts.json';
+const LOCAL_ACCOUNTS_URL = new URL('accounts.json', import.meta.env.BASE_URL).toString();
 
 export async function getAccounts() {
   try {

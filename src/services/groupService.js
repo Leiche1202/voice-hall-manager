@@ -9,7 +9,7 @@ export const PERMISSIONS = [
 
 const API = '/api/groups';
 // Local fallback when the API is unreachable
-const LOCAL_GROUPS_URL = 'groups.json';
+const LOCAL_GROUPS_URL = new URL('groups.json', import.meta.env.BASE_URL).toString();
 
 export async function getGroups() {
   try {

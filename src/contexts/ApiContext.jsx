@@ -87,6 +87,11 @@ export function ApiProvider({ children }) {
         // 确保日期格式正确
         date: scheduleData.date instanceof Date ? scheduleData.date : new Date(scheduleData.date)
       };
+
+      // 如果id为空，避免传递无效键给IndexedDB
+      if (!scheduleData.id) {
+        delete validatedData.id;
+      }
       
       if (scheduleData.id) {
         // 更新现有档表

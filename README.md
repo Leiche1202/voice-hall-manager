@@ -11,7 +11,7 @@
 ## 技术栈
 
 - 前端：React、React Router、Framer Motion、TailwindCSS
-- 后端：Firebase (Firestore, Authentication)
+- 后端：远程 API 服务
 - 部署：Vercel
 
 ## 本地开发
@@ -41,7 +41,7 @@ npm run build
 
 ## 部署
 
-本项目使用Vercel进行部署，并使用Firebase作为后端服务。
+本项目使用Vercel进行部署，后端由远程 API 提供。
 
 ## 许可证
 

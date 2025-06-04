@@ -1,28 +1,18 @@
 import { signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
+import { getAccounts } from './accountService';
 
 // 模拟登录（开发阶段使用）
 export async function mockLogin(username, password) {
-  if (username === '1' && password === '111') {
+  const accounts = getAccounts();
+  const user = accounts.find(
+    (acc) => acc.username === username && acc.password === password
+  );
+  if (user) {
     return {
-      user: {
-        id: '1',
-        username: username,
-        role: 'admin',
-        displayName: '系统管理员'
-      },
-      token: 'mock-token-admin'
-    };
-  } else if (username === '2' && password === '111') {
-    return {
-      user: {
-        id: '2',
-        username: username,
-        role: 'host',
-        displayName: '主持人'
-      },
-      token: 'mock-token-host'
+      user: { ...user },
+      token: `mock-token-${user.role}`
     };
   } else {
     throw new Error('用户名或密码错误');

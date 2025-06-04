@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { ApiProvider, useApi } from './contexts/ApiContext';
+import IdManagement from './components/IdManagement';
 
 // 登录页
 const LoginPage = () => {
@@ -142,6 +143,15 @@ const HallAdminDashboard = ({ navigate }) => {
           onClick={() => navigate('/salary-management')}
         >
           工资管理
+        </motion.button>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+          className="bg-purple-600 text-white px-8 py-3 rounded-xl shadow-lg hover:bg-purple-700 transition-colors duration-200 text-lg"
+          onClick={() => navigate('/id-management')}
+        >
+          ID 编辑
         </motion.button>
       </div>
     </motion.div>
@@ -503,6 +513,7 @@ function App() {
             <Route path="/host-dashboard" element={<HostDashboard />} />
             <Route path="/schedule-management" element={<ScheduleManagement />} />
             <Route path="/salary-management" element={<SalaryManagement />} />
+            <Route path="/id-management" element={<IdManagement />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </AnimatePresence>

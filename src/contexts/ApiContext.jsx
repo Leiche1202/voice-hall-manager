@@ -101,8 +101,9 @@ export function ApiProvider({ children }) {
         // 更新现有档表
         result = await updateSchedule(scheduleData.id, validatedData);
       } else {
-        // 创建新档表
-        result = await addSchedule(validatedData);
+        // 创建新档表，移除可能的id字段以便自增
+        const { id, ...dataWithoutId } = validatedData;
+        result = await addSchedule(dataWithoutId);
       }
       
       // 减少延迟时间，提高响应速度
@@ -112,7 +113,7 @@ export function ApiProvider({ children }) {
       // 更新缓存，保证返回页面后能加载到最新数据
       const dateStr = validatedData.date.toISOString().split('T')[0];
       const cacheKey = `schedule_${dateStr}`;
-      const savedSchedule = { id: savedId, ...validatedData };
+      const savedSchedule = { ...validatedData, id: savedId };
       sessionStorage.setItem(cacheKey, JSON.stringify(savedSchedule));
 
       return savedId;

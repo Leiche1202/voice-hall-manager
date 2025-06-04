@@ -16,6 +16,12 @@ export function ApiProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!auth) {
+      // When firebase is not configured, skip auth listener
+      setLoading(false);
+      return;
+    }
+
       const unsub = onAuthStateChanged(auth, async (user) => {
         if (user) {
           let acc = await getAccount(user.uid);

@@ -199,7 +199,14 @@ const HallAdminDashboard = ({ navigate }) => {
       className="p-6 relative"
     >
       <LogoutButton />
-      <h1 className="text-3xl font-bold mb-6 text-gray-800">后台管理</h1>
+      <h1 className="text-3xl font-bold mb-6 text-gray-800">
+        后台管理
+        {currentUser && (
+          <span className="text-lg font-normal ml-2 text-gray-500">
+            {currentUser.username}
+          </span>
+        )}
+      </h1>
       <div className="flex">
         <div className="w-48 flex flex-col gap-4 mr-6">
           <div className="border rounded-lg p-2 mb-4 space-y-2">

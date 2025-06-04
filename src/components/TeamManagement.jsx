@@ -45,6 +45,7 @@ const TeamManagement = () => {
     setTeams(getTeams());
     setNewTeam(emptyTeam);
     setDirty(false);
+    saveTeams(getTeams());
   };
 
   const handleDelete = (index) => {

@@ -36,6 +36,7 @@ const HallManagement = () => {
     setHalls(getHalls());
     setNewHall({ name: "", managerId: "", teamId: "" });
     setDirty(false);
+    saveHalls(getHalls());
   };
 
   const handleDeleteHall = (index) => {

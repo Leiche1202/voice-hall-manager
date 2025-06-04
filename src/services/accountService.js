@@ -1,12 +1,16 @@
 const API = '/api/accounts';
 
+// Local fallback when the API is unreachable
+// Use a simple relative path so it works both locally and when deployed
+const LOCAL_ACCOUNTS_URL = '/accounts.json';
+
 export async function getAccounts() {
   try {
     const res = await fetch(API);
     if (!res.ok) throw new Error('network');
     return await res.json();
   } catch (err) {
-    const localRes = await fetch('/accounts.json');
+
     return localRes.json();
   }
 }

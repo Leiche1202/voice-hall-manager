@@ -41,10 +41,6 @@ npm run build
 
 ## 部署
 
-本项目使用Vercel进行部署，后端由远程 API 提供。
-### 默认登录账号
-如果远程 API 无法访问，系统会从 `public/accounts.json` 加载默认账号。
-初始管理员账号密码为 `admin/111`。
 
 
 ## 许可证

@@ -1,43 +1,35 @@
-const API = '/api/schedules';
+import { collection, addDoc, doc, setDoc, deleteDoc, getDoc, getDocs, query, where } from 'firebase/firestore';
+import { db } from './firebase';
+
+const schedulesCol = collection(db, 'schedules');
 
 export async function addSchedule(data) {
-  const res = await fetch(API, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  });
-  const result = await res.json();
-  return result.id;
+  const ref = await addDoc(schedulesCol, data);
+  return ref.id;
 }
 
 export async function getScheduleByDate(dateString, hall = '') {
-  const params = new URLSearchParams();
-  if (dateString) params.append('date', dateString);
-  if (hall) params.append('hall', hall);
-  const res = await fetch(`${API}?${params.toString()}`);
-  if (!res.ok) throw new Error('failed');
-  const list = await res.json();
-  return list[0] || null;
+  let q = query(schedulesCol, where('date', '==', dateString));
+  if (hall) {
+    q = query(schedulesCol, where('date', '==', dateString), where('hall', '==', hall));
+  }
+  const snap = await getDocs(q);
+  const docSnap = snap.docs[0];
+  return docSnap ? { id: docSnap.id, ...docSnap.data() } : null;
 }
 
 export async function updateSchedule(id, data) {
-  const res = await fetch(`${API}/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  });
-  if (!res.ok) throw new Error('failed');
+  await setDoc(doc(db, 'schedules', id), data);
   return true;
 }
 
 export async function deleteSchedule(id) {
-  const res = await fetch(`${API}/${id}`, { method: 'DELETE' });
-  if (!res.ok) throw new Error('failed');
+  await deleteDoc(doc(db, 'schedules', id));
   return true;
 }
 
 export async function getAllSchedules() {
-  const res = await fetch(API);
-  if (!res.ok) throw new Error('failed');
-  return res.json();
+  const snap = await getDocs(schedulesCol);
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
+

@@ -1,16 +1,22 @@
-import { getAccounts } from './accountService';
+import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from './firebase';
+import { getAccountByPhone } from './accountService';
 
-export async function login(username, password) {
-  const accounts = await getAccounts();
-  const user = accounts.find(
-    (acc) => acc.username === username && acc.password === password
-  );
-  if (user) {
-    return { user: { ...user }, token: 'mock-token' };
+export async function login(phone, password) {
+  const accountByPhone = await getAccountByPhone(phone);
+  if (!accountByPhone) {
+    throw new Error('Phone not found');
   }
-  throw new Error('用户名或密码错误');
+  const cred = await signInWithEmailAndPassword(auth, accountByPhone.email, password);
+  const ref = doc(db, 'accounts', cred.user.uid);
+  const snap = await getDoc(ref);
+  const account = snap.exists() ? snap.data() : { phone, username: accountByPhone.username };
+  return { user: { id: cred.user.uid, ...account }, token: await cred.user.getIdToken() };
 }
 
 export async function logout() {
+  await signOut(auth);
   return true;
 }
+

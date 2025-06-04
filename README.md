@@ -47,3 +47,8 @@ npm run build
 ## 许可证
 
 MIT
+
+## 环境变量
+
+首次运行前请在项目根目录创建 `.env` 文件，并写入 Firebase 配置信息，然后执行 `npm install` 和 `npm run dev` 以启动开发服务器。
+

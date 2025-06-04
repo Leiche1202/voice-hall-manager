@@ -1,39 +1,49 @@
-const API = '/api/accounts';
+import { collection, getDocs, addDoc, doc, setDoc, deleteDoc, getDoc, query, where } from 'firebase/firestore';
+import { db } from './firebase';
 
-// Local fallback when the API is unreachable
-// Use a simple relative path so it works both locally and when deployed
-const LOCAL_ACCOUNTS_URL = '/accounts.json';
+const accountsCol = collection(db, 'accounts');
 
 export async function getAccounts() {
-  try {
-    const res = await fetch(API);
-    if (!res.ok) throw new Error('network');
-    return await res.json();
-  } catch (err) {
-    const localRes = await fetch(LOCAL_ACCOUNTS_URL);
-    return localRes.json();
-  }
+  const snap = await getDocs(accountsCol);
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+export async function getAccount(id) {
+  const ref = doc(db, 'accounts', id);
+  const snap = await getDoc(ref);
+  return snap.exists() ? { id: snap.id, ...snap.data() } : null;
 }
 
 export async function addAccount(account) {
-  const res = await fetch(API, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(account)
-  });
-  return res.json();
+  const withEmail = {
+    ...account,
+    email: account.email || `${account.username}@gmail.com`,
+    phone: account.phone || ''
+  };
+  const ref = await addDoc(accountsCol, withEmail);
+  return ref.id;
 }
 
 export async function updateAccount(id, account) {
-  const res = await fetch(`${API}/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(account)
-  });
-  return res.json();
+  const existing = !account.email || !account.phone ? await getAccount(id) : null;
+  const data = {
+    ...account,
+    email: account.email || existing?.email || `${account.username}@gmail.com`,
+    phone: account.phone || existing?.phone || ''
+  };
+  await setDoc(doc(db, 'accounts', id), data);
+  return true;
 }
 
 export async function deleteAccount(id) {
-  const res = await fetch(`${API}/${id}`, { method: 'DELETE' });
-  return res.json();
+  await deleteDoc(doc(db, 'accounts', id));
+  return true;
 }
+
+export async function getAccountByPhone(phone) {
+  const q = query(accountsCol, where('phone', '==', phone));
+  const snap = await getDocs(q);
+  const docSnap = snap.docs[0];
+  return docSnap ? { id: docSnap.id, ...docSnap.data() } : null;
+}
+

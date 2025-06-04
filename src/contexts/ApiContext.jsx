@@ -1,5 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { login as apiLogin } from '../services/authService';
+import { login as apiLogin, logout as apiLogout } from '../services/authService';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../services/firebase';
+import { getAccount } from '../services/accountService';
 import { getScheduleByDate, addSchedule, updateSchedule } from '../services/scheduleService';
 
 const ApiContext = createContext();
@@ -11,124 +14,63 @@ export function useApi() {
 export function ApiProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  
-  // 检查本地存储的用户信息
+
   useEffect(() => {
-    const storedUser = localStorage.getItem('currentUser');
-    if (storedUser) {
-      setCurrentUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
-  }, []);
-  
-  // 登录函数
-  const login = async (username, password) => {
-    try {
-      // 使用模拟登录（开发阶段）
-      const result = await apiLogin(username, password);
-      let role = '';
-      if (result.user.groups?.includes('管理员')) {
-        role = 'admin';
-      } else if (result.user.groups?.includes('主持')) {
-        role = 'host';
-      } else if (
-        result.user.groups?.some((g) =>
-          ['厅管', '预备厅管', '多厅厅管'].includes(g)
-        )
-      ) {
-        role = 'manager';
-      }
-      const userWithRole = { ...result.user, role };
-      setCurrentUser(userWithRole);
-      localStorage.setItem('currentUser', JSON.stringify(userWithRole));
-      return userWithRole;
-    } catch (error) {
-      console.error("Login error:", error);
-      throw error;
-    }
-  };
-  
-  // 退出登录
-  const logout = () => {
-    setCurrentUser(null);
-    localStorage.removeItem('currentUser');
-  };
-  
-  // 获取档表
-  const getSchedule = async (date, hall = '') => {
-    try {
-      const dateStr = date instanceof Date ? date.toISOString().split('T')[0] : date;
-      
-      // 使用缓存机制提高加载速度
-      const cacheKey = `schedule_${hall}_${dateStr}`;
-      const cachedData = sessionStorage.getItem(cacheKey);
-      
-      // 如果有缓存数据，直接返回
-      if (cachedData) {
-        return JSON.parse(cachedData);
-      }
-      
-      const schedule = await getScheduleByDate(dateStr, hall);
-      
-      // 如果没有找到档表，创建一个空的
-      if (!schedule) {
-        const emptySchedule = {
-          date: new Date(dateStr),
-          details: Array.from({ length: 24 }, () => ({ 备档: '', 主档: '', 陪档: '' }))
-        };
-        // 缓存空档表
-        sessionStorage.setItem(cacheKey, JSON.stringify(emptySchedule));
-        return emptySchedule;
-      }
-      
-      // 缓存获取到的档表
-      sessionStorage.setItem(cacheKey, JSON.stringify(schedule));
-      return schedule;
-    } catch (error) {
-      console.error("Get schedule error:", error);
-      throw error;
-    }
-  };
-  
-  // 保存档表
-  const saveSchedule = async (scheduleData, hall = '') => {
-    try {
-      let result;
-      // 确保数据格式正确
-      const validatedData = {
-        ...scheduleData,
-        hall,
-        // 确保日期格式正确
-        date: scheduleData.date instanceof Date ? scheduleData.date : new Date(scheduleData.date)
-      };
-      
-      if (scheduleData.id) {
-        // 更新现有档表
-        result = await updateSchedule(scheduleData.id, validatedData);
+    const unsub = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const acc = await getAccount(user.uid);
+        const data = acc || { username: user.email };
+        let role = '';
+        if (data.groups?.includes('管理员')) {
+          role = 'admin';
+        } else if (data.groups?.includes('主持')) {
+          role = 'host';
+        } else if (data.groups?.some((g) => ['厅管', '预备厅管', '多厅厅管'].includes(g))) {
+          role = 'manager';
+        }
+        setCurrentUser({ id: user.uid, ...data, role });
       } else {
-        // 创建新档表，移除可能的id字段以便自增
-        const { id, ...dataWithoutId } = validatedData;
-        result = await addSchedule(dataWithoutId);
+        setCurrentUser(null);
       }
-      
-      // 减少延迟时间，提高响应速度
-      await new Promise(resolve => setTimeout(resolve, 300));
-      const savedId = scheduleData.id ? scheduleData.id : result;
+      setLoading(false);
+    });
+    return () => unsub();
+  }, []);
 
-      // 更新缓存，保证返回页面后能加载到最新数据
-      const dateStr = validatedData.date.toISOString().split('T')[0];
-      const cacheKey = `schedule_${hall}_${dateStr}`;
-      const savedSchedule = { ...validatedData, id: savedId };
-      sessionStorage.setItem(cacheKey, JSON.stringify(savedSchedule));
-
-      return savedId;
-    } catch (error) {
-      console.error("Save schedule error:", error);
-      // 重新抛出错误，以便UI层可以处理
-      throw error;
-    }
+  const login = async (phone, password) => {
+    const result = await apiLogin(phone, password);
+    return result.user;
   };
-  
+
+  const logout = async () => {
+    await apiLogout();
+  };
+
+  const getSchedule = async (date, hall = '') => {
+    const dateStr = date instanceof Date ? date.toISOString().split('T')[0] : date;
+    const schedule = await getScheduleByDate(dateStr, hall);
+    if (!schedule) {
+      return {
+        date: new Date(dateStr),
+        details: Array.from({ length: 24 }, () => ({ 备档: '', 主档: '', 陪档: '' }))
+      };
+    }
+    return schedule;
+  };
+
+  const saveSchedule = async (scheduleData, hall = '') => {
+    const validatedData = {
+      ...scheduleData,
+      hall,
+      date: scheduleData.date instanceof Date ? scheduleData.date : new Date(scheduleData.date)
+    };
+    if (scheduleData.id) {
+      await updateSchedule(scheduleData.id, validatedData);
+      return scheduleData.id;
+    }
+    return await addSchedule(validatedData);
+  };
+
   const value = {
     currentUser,
     login,
@@ -136,10 +78,11 @@ export function ApiProvider({ children }) {
     getSchedule,
     saveSchedule
   };
-  
+
   return (
     <ApiContext.Provider value={value}>
       {!loading && children}
     </ApiContext.Provider>
   );
 }
+

@@ -10,8 +10,9 @@ import {
   SCHEDULES_STORE
 } from '../lib/localDb';
 
-// 判断是否使用本地数据库（开发环境）
-const useLocalDb = import.meta.env.DEV && (!import.meta.env.VITE_API_KEY || import.meta.env.VITE_API_KEY === 'mock-api-key');
+// 判断是否使用本地数据库
+// 当未提供有效的 Firebase 配置时，无论开发或生产环境均使用本地存储
+const useLocalDb = !import.meta.env.VITE_API_KEY || import.meta.env.VITE_API_KEY === 'mock-api-key';
 
 // 如果使用本地数据库，输出提示信息
 if (useLocalDb) {

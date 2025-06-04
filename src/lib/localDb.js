@@ -3,8 +3,10 @@
  * 在开发环境中用于模拟数据库操作，保存测试中的实际更改
  */
 
+// 请勿随意修改数据库名称或版本，否则可能导致已保存的数据丢失
 const DB_NAME = 'testUiLocalDb';
 const DB_VERSION = 1;
+const BACKUP_KEY = 'schedule_backup';
 export const SCHEDULES_STORE = 'schedules';
 
 // 初始化数据库
@@ -17,8 +19,9 @@ export const initDb = () => {
       reject(event.target.error);
     };
     
-    request.onsuccess = (event) => {
+    request.onsuccess = async (event) => {
       const db = event.target.result;
+      await restoreBackup(db);
       resolve(db);
     };
     
@@ -46,12 +49,14 @@ export const addScheduleLocal = async (scheduleData) => {
       const date = new Date(scheduleData.date);
       const dateStr = date.toISOString().split('T')[0];
       
+      const key = `${dateStr}-${scheduleData.hall || ''}`;
       const data = {
         ...scheduleData,
         date: date,
-        dateStr: dateStr,
+        dateStr: key,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
+        dateOnly: dateStr,
       };
       
       const transaction = db.transaction([SCHEDULES_STORE], 'readwrite');
@@ -68,7 +73,8 @@ export const addScheduleLocal = async (scheduleData) => {
         reject(event.target.error);
       };
       
-      transaction.oncomplete = () => {
+      transaction.oncomplete = async () => {
+        await backupSchedules();
         db.close();
       };
     });
@@ -79,20 +85,34 @@ export const addScheduleLocal = async (scheduleData) => {
 };
 
 // 获取指定日期的档表
-export const getScheduleByDateLocal = async (dateString) => {
+export const getScheduleByDateLocal = async (dateString, hall = '') => {
   try {
     const db = await initDb();
-    
+
     return new Promise((resolve, reject) => {
       const transaction = db.transaction([SCHEDULES_STORE], 'readonly');
       const store = transaction.objectStore(SCHEDULES_STORE);
       const index = store.index('dateStr');
-      
-      const request = index.get(dateString);
-      
+
+      const key = `${dateString}-${hall}`;
+      let request = index.get(key);
+
       request.onsuccess = (event) => {
         const result = event.target.result;
-        resolve(result || null);
+        if (result) {
+          resolve(result);
+        } else if (hall) {
+          // 向后兼容旧数据
+          request = index.get(dateString);
+          request.onsuccess = (e) => {
+            resolve(e.target.result || null);
+          };
+          request.onerror = (e) => {
+            reject(e.target.error);
+          };
+        } else {
+          resolve(null);
+        }
       };
       
       request.onerror = (event) => {
@@ -100,7 +120,8 @@ export const getScheduleByDateLocal = async (dateString) => {
         reject(event.target.error);
       };
       
-      transaction.oncomplete = () => {
+      transaction.oncomplete = async () => {
+        await backupSchedules();
         db.close();
       };
     });
@@ -132,12 +153,14 @@ export const updateScheduleLocal = async (id, scheduleData) => {
         // 准备更新数据
         const date = new Date(scheduleData.date);
         const dateStr = date.toISOString().split('T')[0];
-        
+        const key = `${dateStr}-${scheduleData.hall || ''}`;
+
         const updatedData = {
           ...existingData,
           ...scheduleData,
           date: date,
-          dateStr: dateStr,
+          dateStr: key,
+          dateOnly: dateStr,
           updatedAt: new Date()
         };
         
@@ -159,7 +182,8 @@ export const updateScheduleLocal = async (id, scheduleData) => {
         reject(event.target.error);
       };
       
-      transaction.oncomplete = () => {
+      transaction.oncomplete = async () => {
+        await backupSchedules();
         db.close();
       };
     });
@@ -228,3 +252,51 @@ export const clearLocalDb = async () => {
     throw error;
   }
 };
+
+// === 数据备份与恢复 ===
+function exportAll(db) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction([SCHEDULES_STORE], 'readonly');
+    const store = tx.objectStore(SCHEDULES_STORE);
+    const req = store.getAll();
+    req.onsuccess = () => resolve(req.result || []);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function importAll(db, data) {
+  return new Promise((resolve) => {
+    if (!data.length) return resolve();
+    const tx = db.transaction([SCHEDULES_STORE], 'readwrite');
+    const store = tx.objectStore(SCHEDULES_STORE);
+    data.forEach((d) => store.put(d));
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => resolve();
+  });
+}
+
+export async function backupSchedules() {
+  const db = await initDb();
+  const data = await exportAll(db);
+  localStorage.setItem(BACKUP_KEY, JSON.stringify(data));
+  db.close();
+}
+
+export async function restoreBackup(db) {
+  const tx = db.transaction([SCHEDULES_STORE], 'readonly');
+  const store = tx.objectStore(SCHEDULES_STORE);
+  const countReq = store.count();
+  return new Promise((resolve) => {
+    countReq.onsuccess = async () => {
+      if (countReq.result === 0) {
+        const saved = localStorage.getItem(BACKUP_KEY);
+        if (saved) {
+          const data = JSON.parse(saved);
+          await importAll(db, data);
+        }
+      }
+      resolve();
+    };
+    countReq.onerror = () => resolve();
+  });
+}

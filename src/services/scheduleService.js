@@ -10,8 +10,9 @@ import {
   SCHEDULES_STORE
 } from '../lib/localDb';
 
-// 判断是否使用本地数据库（开发环境）
-const useLocalDb = import.meta.env.DEV && (!import.meta.env.VITE_API_KEY || import.meta.env.VITE_API_KEY === 'mock-api-key');
+// 判断是否使用本地数据库
+// 当未提供有效的 Firebase 配置或连接失败时，回退到本地存储
+let useLocalDb = !import.meta.env.VITE_API_KEY || !import.meta.env.VITE_PROJECT_ID;
 
 // 如果使用本地数据库，输出提示信息
 if (useLocalDb) {
@@ -21,34 +22,35 @@ if (useLocalDb) {
 // 添加档表
 export async function addSchedule(scheduleData) {
   try {
-    // 如果是开发环境且使用本地数据库
     if (useLocalDb) {
       return await addScheduleLocal(scheduleData);
     }
-    
-    // 生产环境使用Firebase
-    // 转换日期为Firestore Timestamp
-    const data = {
-      ...scheduleData,
-      date: Timestamp.fromDate(new Date(scheduleData.date)),
-      createdAt: Timestamp.now(),
-      updatedAt: Timestamp.now()
-    };
-    
+
+      const data = {
+        ...scheduleData,
+        date: Timestamp.fromDate(new Date(scheduleData.date)),
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now(),
+      };
+
     const docRef = await addDoc(collection(db, "schedules"), data);
     return docRef.id;
   } catch (error) {
     console.error("Error adding schedule: ", error);
+    if (!useLocalDb) {
+      // 尝试回退到本地存储
+      useLocalDb = true;
+      return addScheduleLocal(scheduleData);
+    }
     throw error;
   }
 }
 
 // 获取指定日期的档表
-export async function getScheduleByDate(dateString) {
+export async function getScheduleByDate(dateString, hall = '') {
   try {
-    // 如果是开发环境且使用本地数据库
     if (useLocalDb) {
-      return await getScheduleByDateLocal(dateString);
+      return await getScheduleByDateLocal(dateString, hall);
     }
     
     // 生产环境使用Firebase
@@ -60,7 +62,8 @@ export async function getScheduleByDate(dateString) {
     const q = query(
       collection(db, "schedules"),
       where("date", ">", Timestamp.fromDate(startOfDay)),
-      where("date", "<", Timestamp.fromDate(endOfDay))
+      where("date", "<", Timestamp.fromDate(endOfDay)),
+      where("hall", "==", hall)
     );
     
     const querySnapshot = await getDocs(q);
@@ -73,13 +76,16 @@ export async function getScheduleByDate(dateString) {
     return {
       id: doc.id,
       ...doc.data(),
-      // 转换Timestamp为JS Date
       date: doc.data().date.toDate(),
       createdAt: doc.data().createdAt?.toDate(),
-      updatedAt: doc.data().updatedAt?.toDate()
+      updatedAt: doc.data().updatedAt?.toDate(),
     };
   } catch (error) {
     console.error("Error getting schedule: ", error);
+    if (!useLocalDb) {
+      useLocalDb = true;
+      return getScheduleByDateLocal(dateString, hall);
+    }
     throw error;
   }
 }
@@ -87,7 +93,6 @@ export async function getScheduleByDate(dateString) {
 // 更新档表
 export async function updateSchedule(id, scheduleData) {
   try {
-    // 如果是开发环境且使用本地数据库
     if (useLocalDb) {
       return await updateScheduleLocal(id, scheduleData);
     }
@@ -134,6 +139,10 @@ export async function updateSchedule(id, scheduleData) {
     return true;
   } catch (error) {
     console.error("Error updating schedule: ", error);
+    if (!useLocalDb) {
+      useLocalDb = true;
+      return updateScheduleLocal(id, scheduleData);
+    }
     throw error;
   }
 }
@@ -141,7 +150,6 @@ export async function updateSchedule(id, scheduleData) {
 // 删除档表
 export async function deleteSchedule(id) {
   try {
-    // 如果是开发环境且使用本地数据库
     if (useLocalDb) {
       return await deleteScheduleLocal(id);
     }
@@ -151,6 +159,10 @@ export async function deleteSchedule(id) {
     return true;
   } catch (error) {
     console.error("Error deleting schedule: ", error);
+    if (!useLocalDb) {
+      useLocalDb = true;
+      return deleteScheduleLocal(id);
+    }
     throw error;
   }
 }
@@ -158,9 +170,7 @@ export async function deleteSchedule(id) {
 // 获取所有档表
 export async function getAllSchedules() {
   try {
-    // 如果是开发环境且使用本地数据库
     if (useLocalDb) {
-      // 获取所有本地档表
       const db = await initDb();
       
       return new Promise((resolve, reject) => {
@@ -198,6 +208,10 @@ export async function getAllSchedules() {
     return schedules;
   } catch (error) {
     console.error("Error getting all schedules: ", error);
+    if (!useLocalDb) {
+      useLocalDb = true;
+      return getAllSchedules();
+    }
     throw error;
   }
 }

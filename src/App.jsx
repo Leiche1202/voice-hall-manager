@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import { ApiProvider, useApi } from './contexts/ApiContext';
 import IdManagement from './components/IdManagement';
 import GroupManagement from './components/GroupManagement';
+import { getAccounts } from './services/accountService';
 
 // 登录页
 const LoginPage = () => {
@@ -195,7 +196,6 @@ const HostDashboard = () => {
 };
 
 // 档表管理
-const mockHosts = ['10001', '10002', '10003', '10004', '10005'];
 
 const ScheduleManagement = () => {
   const navigate = useNavigate();
@@ -204,6 +204,11 @@ const ScheduleManagement = () => {
   );
   const [scheduleId, setScheduleId] = React.useState(null);
   const [selecting, setSelecting] = React.useState(null);
+  const [hosts, setHosts] = React.useState(() =>
+    getAccounts()
+      .filter((a) => (a.groups || []).includes('主持'))
+      .map((a) => a.username)
+  );
   const [isSaving, setIsSaving] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(true);
   const [saveStatus, setSaveStatus] = React.useState(''); // 添加保存状态提示
@@ -243,6 +248,11 @@ const ScheduleManagement = () => {
 
   const handleCellClick = (hour, role) => {
     if (role !== '备档') return;
+    setHosts(
+      getAccounts()
+        .filter((a) => (a.groups || []).includes('主持'))
+        .map((a) => a.username)
+    );
     setSelecting({ hour, role });
   };
 
@@ -439,7 +449,7 @@ const ScheduleManagement = () => {
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2">
-                  {mockHosts.map((name) => (
+                  {hosts.map((name) => (
                     <li key={name}>
                       <Button
                         onClick={() => handleSelectHost(name)}

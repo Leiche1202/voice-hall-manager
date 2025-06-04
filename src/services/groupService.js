@@ -1,6 +1,6 @@
 export const DEFAULT_GROUPS = [
-  { name: '管理员', permissions: ['ALL'] },
-  { name: '厅管', permissions: [] },
+  { name: '管理员', permissions: ['档表管理', '工资管理', 'ID 编辑', '分组管理'] },
+  { name: '厅管', permissions: ['档表管理', '工资管理'] },
   { name: '主持', permissions: [] }
 ];
 

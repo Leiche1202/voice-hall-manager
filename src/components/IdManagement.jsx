@@ -22,12 +22,17 @@ const IdManagement = () => {
 
   const handleChange = (index, field, value) => {
     const updated = [...accounts];
-    if (field === 'groups') {
-      const options = Array.from(value.options).filter((o) => o.selected).map((o) => o.value);
-      updated[index].groups = options;
-    } else {
-      updated[index][field] = value;
-    }
+    updated[index][field] = value;
+    setAccounts(updated);
+    saveAccounts(updated);
+  };
+
+  const toggleGroup = (index, groupName, checked) => {
+    const updated = [...accounts];
+    const current = updated[index].groups || [];
+    updated[index].groups = checked
+      ? Array.from(new Set([...current, groupName]))
+      : current.filter((g) => g !== groupName);
     setAccounts(updated);
     saveAccounts(updated);
   };
@@ -56,6 +61,8 @@ const IdManagement = () => {
       className="p-6 text-center relative"
     >
       <h1 className="text-3xl font-bold mb-8 text-gray-800">ID 编辑</h1>
+      <Card className="shadow">
+        <CardContent className="p-0 overflow-x-auto">
       <table className="w-full text-left border">
         <thead className="bg-gray-100">
           <tr>
@@ -85,18 +92,19 @@ const IdManagement = () => {
                 />
               </td>
               <td className="p-2">
-                <select
-                  multiple
-                  value={acc.groups || []}
-                  onChange={(e) => handleChange(idx, 'groups', e.target)}
-                  className="w-full border rounded px-2 py-1"
-                >
+                <div className="flex flex-wrap gap-2">
                   {groups.map((g) => (
-                    <option key={g.name} value={g.name}>
-                      {g.name}
-                    </option>
+                    <label key={g.name} className="flex items-center space-x-1">
+                      <input
+                        type="checkbox"
+                        checked={(acc.groups || []).includes(g.name)}
+                        onChange={(e) => toggleGroup(idx, g.name, e.target.checked)}
+                        className="form-checkbox"
+                      />
+                      <span>{g.name}</span>
+                    </label>
                   ))}
-                </select>
+                </div>
               </td>
               <td className="p-2">
                 <Button variant="destructive" onClick={() => handleDelete(idx)}>
@@ -107,6 +115,8 @@ const IdManagement = () => {
           ))}
         </tbody>
       </table>
+        </CardContent>
+      </Card>
       <Card className="shadow mt-6">
         <CardHeader>
           <CardTitle className="text-xl">新增账户</CardTitle>
@@ -124,24 +134,29 @@ const IdManagement = () => {
             onChange={(e) => setNewAccount({ ...newAccount, password: e.target.value })}
             placeholder="密码"
           />
-          <select
-            multiple
-            value={newAccount.groups}
-            onChange={(e) => {
-              const options = Array.from(e.target.options)
-                .filter((o) => o.selected)
-                .map((o) => o.value);
-              setNewAccount({ ...newAccount, groups: options });
-            }}
-            className="w-full border rounded px-2 py-1"
-          >
+          <div className="flex flex-wrap gap-2">
             {groups.map((g) => (
-              <option key={g.name} value={g.name}>
-                {g.name}
-              </option>
+              <label key={g.name} className="flex items-center space-x-1">
+                <input
+                  type="checkbox"
+                  checked={newAccount.groups.includes(g.name)}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    setNewAccount((prev) => {
+                      const current = prev.groups;
+                      const updated = checked
+                        ? Array.from(new Set([...current, g.name]))
+                        : current.filter((n) => n !== g.name);
+                      return { ...prev, groups: updated };
+                    });
+                  }}
+                  className="form-checkbox"
+                />
+                <span>{g.name}</span>
+              </label>
             ))}
-          </select>
-          <Button onClick={handleAdd}>添加</Button>
+          </div>
+         <Button onClick={handleAdd}>添加</Button>
         </CardContent>
       </Card>
       <div className="mt-6 flex justify-center gap-4">

@@ -11,7 +11,9 @@ import {
   deleteGroup
 } from '@/services/groupService';
 
-const emptyGroup = { name: '', permissions: '' };
+const PERMISSIONS = ['档表管理', '工资管理', 'ID 编辑', '分组管理'];
+
+const emptyGroup = { name: '', permissions: [] };
 
 const GroupManagement = () => {
   const navigate = useNavigate();
@@ -20,11 +22,17 @@ const GroupManagement = () => {
 
   const handleChange = (index, field, value) => {
     const updated = [...groups];
-    if (field === 'permissions') {
-      updated[index][field] = value.split(',').map((p) => p.trim()).filter(Boolean);
-    } else {
-      updated[index][field] = value;
-    }
+    updated[index][field] = value;
+    setGroups(updated);
+    saveGroups(updated);
+  };
+
+  const togglePermission = (index, perm, checked) => {
+    const updated = [...groups];
+    const current = updated[index].permissions || [];
+    updated[index].permissions = checked
+      ? Array.from(new Set([...current, perm]))
+      : current.filter((p) => p !== perm);
     setGroups(updated);
     saveGroups(updated);
   };
@@ -33,9 +41,6 @@ const GroupManagement = () => {
     const group = {
       name: newGroup.name,
       permissions: newGroup.permissions
-        .split(',')
-        .map((p) => p.trim())
-        .filter(Boolean)
     };
     addGroup(group);
     setGroups(getGroups());
@@ -55,11 +60,13 @@ const GroupManagement = () => {
       className="p-6 text-center relative"
     >
       <h1 className="text-3xl font-bold mb-8 text-gray-800">分组管理</h1>
+      <Card className="shadow">
+        <CardContent className="p-0 overflow-x-auto">
       <table className="w-full text-left border">
         <thead className="bg-gray-100">
           <tr>
             <th className="p-2 border">分组名称</th>
-            <th className="p-2 border">权限 (逗号分隔)</th>
+            <th className="p-2 border">权限</th>
             <th className="p-2 border"></th>
           </tr>
         </thead>
@@ -74,11 +81,19 @@ const GroupManagement = () => {
                 />
               </td>
               <td className="p-2">
-                <Input
-                  type="text"
-                  value={Array.isArray(g.permissions) ? g.permissions.join(',') : g.permissions}
-                  onChange={(e) => handleChange(idx, 'permissions', e.target.value)}
-                />
+                <div className="flex flex-wrap gap-2">
+                  {PERMISSIONS.map((p) => (
+                    <label key={p} className="flex items-center space-x-1">
+                      <input
+                        type="checkbox"
+                        checked={(g.permissions || []).includes(p)}
+                        onChange={(e) => togglePermission(idx, p, e.target.checked)}
+                        className="form-checkbox"
+                      />
+                      <span>{p}</span>
+                    </label>
+                  ))}
+                </div>
               </td>
               <td className="p-2">
                 <Button variant="destructive" onClick={() => handleDelete(idx)}>
@@ -89,6 +104,8 @@ const GroupManagement = () => {
           ))}
         </tbody>
       </table>
+        </CardContent>
+      </Card>
       <Card className="shadow mt-6">
         <CardHeader>
           <CardTitle className="text-xl">新增分组</CardTitle>
@@ -100,12 +117,28 @@ const GroupManagement = () => {
             onChange={(e) => setNewGroup({ ...newGroup, name: e.target.value })}
             placeholder="分组名称"
           />
-          <Input
-            type="text"
-            value={newGroup.permissions}
-            onChange={(e) => setNewGroup({ ...newGroup, permissions: e.target.value })}
-            placeholder="权限，逗号分隔"
-          />
+          <div className="flex flex-wrap gap-2">
+            {PERMISSIONS.map((p) => (
+              <label key={p} className="flex items-center space-x-1">
+                <input
+                  type="checkbox"
+                  checked={newGroup.permissions.includes(p)}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    setNewGroup((prev) => {
+                      const current = prev.permissions;
+                      const updated = checked
+                        ? Array.from(new Set([...current, p]))
+                        : current.filter((x) => x !== p);
+                      return { ...prev, permissions: updated };
+                    });
+                  }}
+                  className="form-checkbox"
+                />
+                <span>{p}</span>
+              </label>
+            ))}
+          </div>
           <Button onClick={handleAdd}>添加</Button>
         </CardContent>
       </Card>

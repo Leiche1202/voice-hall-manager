@@ -41,7 +41,7 @@ npm run build
 
 ## 部署
 
-本项目使用 Vercel 进行部署，后端由远程 API 提供。
+
 
 
 ## 许可证

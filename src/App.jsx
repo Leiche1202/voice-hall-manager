@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { ApiProvider, useApi } from './contexts/ApiContext';
 import IdManagement from './components/IdManagement';
+import GroupManagement from './components/GroupManagement';
 
 // 登录页
 const LoginPage = () => {
@@ -514,6 +515,7 @@ function App() {
             <Route path="/schedule-management" element={<ScheduleManagement />} />
             <Route path="/salary-management" element={<SalaryManagement />} />
             <Route path="/id-management" element={<IdManagement />} />
+            <Route path="/group-management" element={<GroupManagement />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </AnimatePresence>

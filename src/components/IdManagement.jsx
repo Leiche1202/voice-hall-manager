@@ -10,43 +10,36 @@ import {
   addAccount,
   deleteAccount
 } from '@/services/accountService';
+import { getGroups } from '@/services/groupService';
 
-const ROLES = [
-  { value: 'admin', label: '管理员' },
-  { value: 'hall', label: '厅管' },
-  { value: 'host', label: '主持' }
-];
-
-const emptyAccount = { username: '', password: '', role: 'host', group: '主持' };
+const emptyAccount = { username: '', password: '', groups: [] };
 
 const IdManagement = () => {
   const navigate = useNavigate();
   const [accounts, setAccounts] = React.useState(() => getAccounts());
   const [newAccount, setNewAccount] = React.useState(emptyAccount);
+  const groups = React.useMemo(() => getGroups(), []);
 
   const handleChange = (index, field, value) => {
     const updated = [...accounts];
-    updated[index][field] = value;
-    if (field === 'role') {
-      const r = ROLES.find((r) => r.value === value);
-      if (r) updated[index].group = r.label;
+    if (field === 'groups') {
+      const options = Array.from(value.options).filter((o) => o.selected).map((o) => o.value);
+      updated[index].groups = options;
+    } else {
+      updated[index][field] = value;
     }
     setAccounts(updated);
-  };
-
-  const handleSave = () => {
-    saveAccounts(accounts);
+    saveAccounts(updated);
   };
 
   const handleAdd = () => {
-    const roleInfo = ROLES.find((r) => r.value === newAccount.role);
     const account = {
       ...newAccount,
-      id: Date.now().toString(),
-      group: roleInfo ? roleInfo.label : newAccount.group
+      id: Date.now().toString()
     };
     addAccount(account);
-    setAccounts(getAccounts());
+    const updated = getAccounts();
+    setAccounts(updated);
     setNewAccount(emptyAccount);
   };
 
@@ -63,47 +56,57 @@ const IdManagement = () => {
       className="p-6 text-center relative"
     >
       <h1 className="text-3xl font-bold mb-8 text-gray-800">ID 编辑</h1>
-      <div className="space-y-4">
-        {accounts.map((acc, idx) => (
-          <Card key={acc.id} className="shadow">
-            <CardHeader>
-              <CardTitle className="text-xl">账户 {idx + 1}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <Input
-                type="text"
-                value={acc.username}
-                onChange={(e) => handleChange(idx, 'username', e.target.value)}
-                placeholder="用户名"
-              />
-              <Input
-                type="text"
-                value={acc.password}
-                onChange={(e) => handleChange(idx, 'password', e.target.value)}
-                placeholder="密码"
-              />
-              <select
-                value={acc.role}
-                onChange={(e) => handleChange(idx, 'role', e.target.value)}
-                className="w-full border rounded px-2 py-1"
-              >
-                {ROLES.map((r) => (
-                  <option key={r.value} value={r.value}>
-                    {r.label}
-                  </option>
-                ))}
-              </select>
-              <Button
-                variant="destructive"
-                onClick={() => handleDelete(idx)}
-                className="mt-2"
-              >
-                删除
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <table className="w-full text-left border">
+        <thead className="bg-gray-100">
+          <tr>
+            <th className="p-2 border">账户</th>
+            <th className="p-2 border">用户名</th>
+            <th className="p-2 border">密码</th>
+            <th className="p-2 border">分组</th>
+            <th className="p-2 border"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {accounts.map((acc, idx) => (
+            <tr key={acc.id} className="border-t">
+              <td className="p-2">账户 {idx + 1}</td>
+              <td className="p-2">
+                <Input
+                  type="text"
+                  value={acc.username}
+                  onChange={(e) => handleChange(idx, 'username', e.target.value)}
+                />
+              </td>
+              <td className="p-2">
+                <Input
+                  type="text"
+                  value={acc.password}
+                  onChange={(e) => handleChange(idx, 'password', e.target.value)}
+                />
+              </td>
+              <td className="p-2">
+                <select
+                  multiple
+                  value={acc.groups || []}
+                  onChange={(e) => handleChange(idx, 'groups', e.target)}
+                  className="w-full border rounded px-2 py-1"
+                >
+                  {groups.map((g) => (
+                    <option key={g.name} value={g.name}>
+                      {g.name}
+                    </option>
+                  ))}
+                </select>
+              </td>
+              <td className="p-2">
+                <Button variant="destructive" onClick={() => handleDelete(idx)}>
+                  删除
+                </Button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
       <Card className="shadow mt-6">
         <CardHeader>
           <CardTitle className="text-xl">新增账户</CardTitle>
@@ -122,21 +125,19 @@ const IdManagement = () => {
             placeholder="密码"
           />
           <select
-            value={newAccount.role}
+            multiple
+            value={newAccount.groups}
             onChange={(e) => {
-              const value = e.target.value;
-              const info = ROLES.find((r) => r.value === value);
-              setNewAccount({
-                ...newAccount,
-                role: value,
-                group: info ? info.label : newAccount.group
-              });
+              const options = Array.from(e.target.options)
+                .filter((o) => o.selected)
+                .map((o) => o.value);
+              setNewAccount({ ...newAccount, groups: options });
             }}
             className="w-full border rounded px-2 py-1"
           >
-            {ROLES.map((r) => (
-              <option key={r.value} value={r.value}>
-                {r.label}
+            {groups.map((g) => (
+              <option key={g.name} value={g.name}>
+                {g.name}
               </option>
             ))}
           </select>
@@ -144,7 +145,7 @@ const IdManagement = () => {
         </CardContent>
       </Card>
       <div className="mt-6 flex justify-center gap-4">
-        <Button onClick={handleSave}>保存修改</Button>
+        <Button onClick={() => navigate('/group-management')}>分组编辑</Button>
         <Button variant="secondary" onClick={() => navigate(-1)}>
           返回
         </Button>

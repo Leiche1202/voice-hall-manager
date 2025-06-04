@@ -12,7 +12,7 @@ export async function mockLogin(username, password) {
   if (user) {
     return {
       user: { ...user },
-      token: `mock-token-${user.role}`
+      token: 'mock-token'
     };
   } else {
     throw new Error('用户名或密码错误');

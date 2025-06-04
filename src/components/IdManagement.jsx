@@ -16,9 +16,6 @@ const emptyAccount = {
   username: "",
   password: "",
   groups: [],
-  hall: "",
-  manager: "",
-  team: "",
 };
 
 const IdManagement = () => {

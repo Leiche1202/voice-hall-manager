@@ -4,9 +4,6 @@ export const DEFAULT_ACCOUNTS = [
     username: "admin",
     password: "111",
     groups: ["管理员"],
-    hall: "",
-    manager: "",
-    team: "",
   },
 ];
 
@@ -20,8 +17,7 @@ export function getAccounts() {
     localStorage.setItem("accounts", JSON.stringify(DEFAULT_ACCOUNTS));
     return DEFAULT_ACCOUNTS.slice();
   }
-  const list = JSON.parse(stored);
-  return list.map((a) => ({ hall: "", manager: "", team: "", ...a }));
+  return JSON.parse(stored);
 }
 
 export function saveAccounts(accounts) {

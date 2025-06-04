@@ -53,6 +53,11 @@ export const addScheduleLocal = async (scheduleData) => {
         createdAt: new Date(),
         updatedAt: new Date()
       };
+
+      // IndexedDB 自增键不能接受 undefined/null 等无效值
+      if (data.id === undefined || data.id === null || data.id === '') {
+        delete data.id;
+      }
       
       const transaction = db.transaction([SCHEDULES_STORE], 'readwrite');
       const store = transaction.objectStore(SCHEDULES_STORE);

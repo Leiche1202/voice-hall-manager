@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import { ApiProvider, useApi } from './contexts/ApiContext';
 import IdManagement from './components/IdManagement';
 import GroupManagement from './components/GroupManagement';
+import HallManagement from './components/HallManagement';
 import { getAccounts } from './services/accountService';
 
 // 登录页
@@ -155,6 +156,24 @@ const HallAdminDashboard = ({ navigate }) => {
         >
           ID 编辑
         </motion.button>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+          className="bg-purple-600 text-white px-8 py-3 rounded-xl shadow-lg hover:bg-purple-700 transition-colors duration-200 text-lg"
+          onClick={() => navigate('/group-management')}
+        >
+          分组管理
+        </motion.button>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+          className="bg-purple-600 text-white px-8 py-3 rounded-xl shadow-lg hover:bg-purple-700 transition-colors duration-200 text-lg"
+          onClick={() => navigate('/hall-management')}
+        >
+          分厅管理
+        </motion.button>
       </div>
     </motion.div>
   );
@@ -296,12 +315,15 @@ const ScheduleManagement = () => {
     setSaveStatus('正在保存...');
     try {
       const today = new Date().toISOString().split('T')[0];
-      await saveSchedule({
+      const id = await saveSchedule({
         id: scheduleId,
         date: today,
         details: schedule,
         status: 'published'
       });
+      if (id && !scheduleId) {
+        setScheduleId(id);
+      }
       setSaveStatus('档表已成功保存！');
     } catch (error) {
       console.error("Failed to save schedule:", error);
@@ -526,6 +548,7 @@ function App() {
             <Route path="/salary-management" element={<SalaryManagement />} />
             <Route path="/id-management" element={<IdManagement />} />
             <Route path="/group-management" element={<GroupManagement />} />
+            <Route path="/hall-management" element={<HallManagement />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </AnimatePresence>

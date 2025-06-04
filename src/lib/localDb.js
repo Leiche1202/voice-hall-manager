@@ -47,12 +47,14 @@ export const addScheduleLocal = async (scheduleData) => {
       const date = new Date(scheduleData.date);
       const dateStr = date.toISOString().split('T')[0];
       
+      const key = `${dateStr}-${scheduleData.hall || ''}`;
       const data = {
         ...scheduleData,
         date: date,
-        dateStr: dateStr,
+        dateStr: key,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
+        dateOnly: dateStr,
       };
       
       const transaction = db.transaction([SCHEDULES_STORE], 'readwrite');
@@ -80,20 +82,34 @@ export const addScheduleLocal = async (scheduleData) => {
 };
 
 // 获取指定日期的档表
-export const getScheduleByDateLocal = async (dateString) => {
+export const getScheduleByDateLocal = async (dateString, hall = '') => {
   try {
     const db = await initDb();
-    
+
     return new Promise((resolve, reject) => {
       const transaction = db.transaction([SCHEDULES_STORE], 'readonly');
       const store = transaction.objectStore(SCHEDULES_STORE);
       const index = store.index('dateStr');
-      
-      const request = index.get(dateString);
-      
+
+      const key = `${dateString}-${hall}`;
+      let request = index.get(key);
+
       request.onsuccess = (event) => {
         const result = event.target.result;
-        resolve(result || null);
+        if (result) {
+          resolve(result);
+        } else if (hall) {
+          // 向后兼容旧数据
+          request = index.get(dateString);
+          request.onsuccess = (e) => {
+            resolve(e.target.result || null);
+          };
+          request.onerror = (e) => {
+            reject(e.target.error);
+          };
+        } else {
+          resolve(null);
+        }
       };
       
       request.onerror = (event) => {
@@ -133,12 +149,14 @@ export const updateScheduleLocal = async (id, scheduleData) => {
         // 准备更新数据
         const date = new Date(scheduleData.date);
         const dateStr = date.toISOString().split('T')[0];
-        
+        const key = `${dateStr}-${scheduleData.hall || ''}`;
+
         const updatedData = {
           ...existingData,
           ...scheduleData,
           date: date,
-          dateStr: dateStr,
+          dateStr: key,
+          dateOnly: dateStr,
           updatedAt: new Date()
         };
         

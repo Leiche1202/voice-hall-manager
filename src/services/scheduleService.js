@@ -26,12 +26,12 @@ export async function addSchedule(scheduleData) {
       return await addScheduleLocal(scheduleData);
     }
 
-    const data = {
-      ...scheduleData,
-      date: Timestamp.fromDate(new Date(scheduleData.date)),
-      createdAt: Timestamp.now(),
-      updatedAt: Timestamp.now(),
-    };
+      const data = {
+        ...scheduleData,
+        date: Timestamp.fromDate(new Date(scheduleData.date)),
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now(),
+      };
 
     const docRef = await addDoc(collection(db, "schedules"), data);
     return docRef.id;
@@ -47,10 +47,10 @@ export async function addSchedule(scheduleData) {
 }
 
 // 获取指定日期的档表
-export async function getScheduleByDate(dateString) {
+export async function getScheduleByDate(dateString, hall = '') {
   try {
     if (useLocalDb) {
-      return await getScheduleByDateLocal(dateString);
+      return await getScheduleByDateLocal(dateString, hall);
     }
     
     // 生产环境使用Firebase
@@ -62,7 +62,8 @@ export async function getScheduleByDate(dateString) {
     const q = query(
       collection(db, "schedules"),
       where("date", ">", Timestamp.fromDate(startOfDay)),
-      where("date", "<", Timestamp.fromDate(endOfDay))
+      where("date", "<", Timestamp.fromDate(endOfDay)),
+      where("hall", "==", hall)
     );
     
     const querySnapshot = await getDocs(q);
@@ -83,7 +84,7 @@ export async function getScheduleByDate(dateString) {
     console.error("Error getting schedule: ", error);
     if (!useLocalDb) {
       useLocalDb = true;
-      return getScheduleByDateLocal(dateString);
+      return getScheduleByDateLocal(dateString, hall);
     }
     throw error;
   }

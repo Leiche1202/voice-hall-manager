@@ -25,6 +25,7 @@ import HallManagement from "./components/HallManagement";
 import TeamManagement from "./components/TeamManagement";
 import { getAccounts } from "./services/accountService";
 import { getGroups } from "./services/groupService";
+import { getHalls } from "./services/hallService";
 
 // 登录页
 const LoginPage = () => {
@@ -270,6 +271,10 @@ const ScheduleManagement = () => {
   const [schedule, setSchedule] = React.useState(() =>
     Array.from({ length: 24 }, () => ({ 备档: "", 主档: "", 陪档: "" })),
   );
+  const halls = React.useMemo(() => getHalls(), []);
+  const [selectedHall, setSelectedHall] = React.useState(() =>
+    halls[0]?.name || ""
+  );
   const [scheduleId, setScheduleId] = React.useState(null);
   const [selecting, setSelecting] = React.useState(null);
   const [hosts, setHosts] = React.useState(() =>
@@ -287,7 +292,7 @@ const ScheduleManagement = () => {
     const loadSchedule = async () => {
       try {
         const today = new Date().toISOString().split("T")[0];
-        const result = await getSchedule(today);
+        const result = await getSchedule(today, selectedHall);
         if (result) {
           setScheduleId(result.id);
           setSchedule(result.details || []);
@@ -299,8 +304,14 @@ const ScheduleManagement = () => {
       }
     };
 
-    loadSchedule();
-  }, [getSchedule]);
+    if (selectedHall) {
+      setScheduleId(null);
+      setSchedule(
+        Array.from({ length: 24 }, () => ({ 备档: "", 主档: "", 陪档: "" }))
+      );
+      loadSchedule();
+    }
+  }, [getSchedule, selectedHall]);
 
   // 状态提示自动消失
   React.useEffect(() => {
@@ -372,7 +383,7 @@ const ScheduleManagement = () => {
         date: today,
         details: schedule,
         status: "published",
-      });
+      }, selectedHall);
       if (id && !scheduleId) {
         setScheduleId(id);
       }
@@ -419,6 +430,20 @@ const ScheduleManagement = () => {
           {saveStatus}
         </div>
       )}
+
+      <div className="mb-4 text-center">
+        <select
+          className="border rounded px-3 py-1"
+          value={selectedHall}
+          onChange={(e) => setSelectedHall(e.target.value)}
+        >
+          {halls.map((h) => (
+            <option key={h.id} value={h.name}>
+              {h.name}
+            </option>
+          ))}
+        </select>
+      </div>
 
       <div className="flex flex-col md:flex-row gap-4">
         {/* 第一列：0-11小时 */}

@@ -53,12 +53,12 @@ export function ApiProvider({ children }) {
   };
   
   // 获取档表
-  const getSchedule = async (date) => {
+  const getSchedule = async (date, hall = '') => {
     try {
       const dateStr = date instanceof Date ? date.toISOString().split('T')[0] : date;
       
       // 使用缓存机制提高加载速度
-      const cacheKey = `schedule_${dateStr}`;
+      const cacheKey = `schedule_${hall}_${dateStr}`;
       const cachedData = sessionStorage.getItem(cacheKey);
       
       // 如果有缓存数据，直接返回
@@ -66,7 +66,7 @@ export function ApiProvider({ children }) {
         return JSON.parse(cachedData);
       }
       
-      const schedule = await getScheduleByDate(dateStr);
+      const schedule = await getScheduleByDate(dateStr, hall);
       
       // 如果没有找到档表，创建一个空的
       if (!schedule) {
@@ -89,12 +89,13 @@ export function ApiProvider({ children }) {
   };
   
   // 保存档表
-  const saveSchedule = async (scheduleData) => {
+  const saveSchedule = async (scheduleData, hall = '') => {
     try {
       let result;
       // 确保数据格式正确
       const validatedData = {
         ...scheduleData,
+        hall,
         // 确保日期格式正确
         date: scheduleData.date instanceof Date ? scheduleData.date : new Date(scheduleData.date)
       };
@@ -114,7 +115,7 @@ export function ApiProvider({ children }) {
 
       // 更新缓存，保证返回页面后能加载到最新数据
       const dateStr = validatedData.date.toISOString().split('T')[0];
-      const cacheKey = `schedule_${dateStr}`;
+      const cacheKey = `schedule_${hall}_${dateStr}`;
       const savedSchedule = { ...validatedData, id: savedId };
       sessionStorage.setItem(cacheKey, JSON.stringify(savedSchedule));
 

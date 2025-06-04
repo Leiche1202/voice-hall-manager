@@ -12,7 +12,7 @@ import {
   deleteTeam,
 } from "@/services/teamService";
 
-const emptyTeam = { name: "", owner: "", member: "" };
+const emptyTeam = { name: "", owner: "", member: "", parent: "" };
 
 const TeamManagement = () => {
   const navigate = useNavigate();
@@ -61,6 +61,7 @@ const TeamManagement = () => {
                 <th className="p-2 border">团队名称</th>
                 <th className="p-2 border">所有者</th>
                 <th className="p-2 border">隶属者</th>
+                <th className="p-2 border">上级厅管</th>
                 <th className="p-2 border"></th>
               </tr>
             </thead>
@@ -98,6 +99,22 @@ const TeamManagement = () => {
                       value={team.member}
                       onChange={(e) =>
                         handleChange(idx, "member", e.target.value)
+                      }
+                    >
+                      <option value="">未指定</option>
+                      {managers.map((m) => (
+                        <option key={m} value={m}>
+                          {m}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
+                  <td className="p-2">
+                    <select
+                      className="border rounded px-2 py-1"
+                      value={team.parent || ""}
+                      onChange={(e) =>
+                        handleChange(idx, "parent", e.target.value)
                       }
                     >
                       <option value="">未指定</option>
@@ -151,6 +168,18 @@ const TeamManagement = () => {
             onChange={(e) => setNewTeam({ ...newTeam, member: e.target.value })}
           >
             <option value="">选择隶属者</option>
+            {managers.map((m) => (
+              <option key={m} value={m}>
+                {m}
+              </option>
+            ))}
+          </select>
+          <select
+            className="border rounded px-2 py-1 w-full"
+            value={newTeam.parent}
+            onChange={(e) => setNewTeam({ ...newTeam, parent: e.target.value })}
+          >
+            <option value="">选择上级厅管</option>
             {managers.map((m) => (
               <option key={m} value={m}>
                 {m}

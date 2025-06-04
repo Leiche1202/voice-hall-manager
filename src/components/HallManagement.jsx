@@ -52,36 +52,6 @@ const HallManagement = () => {
       <h1 className="text-3xl font-bold mb-8 text-gray-800">分厅管理</h1>
       <Card className="shadow mb-6">
         <CardHeader>
-          <CardTitle className="text-xl">分厅列表</CardTitle>
-        </CardHeader>
-        <CardContent className="p-0 overflow-x-auto">
-          <table className="w-full text-left border">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="p-2 border">名称</th>
-                <th className="p-2 border"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {halls.map((hall, idx) => (
-                <tr key={hall.id} className="border-t">
-                  <td className="p-2">{hall.name}</td>
-                  <td className="p-2">
-                    <Button
-                      variant="destructive"
-                      onClick={() => handleDeleteHall(idx)}
-                    >
-                      删除
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </CardContent>
-      </Card>
-      <Card className="shadow mb-6">
-        <CardHeader>
           <CardTitle className="text-xl">新增分厅</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
@@ -120,7 +90,7 @@ const HallManagement = () => {
       </Card>
       <Card className="shadow mb-6">
         <CardHeader>
-          <CardTitle className="text-xl">分厅属性</CardTitle>
+          <CardTitle className="text-xl">分厅列表</CardTitle>
         </CardHeader>
         <CardContent className="p-0 overflow-x-auto">
           <table className="w-full text-left border">

@@ -34,18 +34,36 @@ const PermissionManagement = () => {
             <thead>
               <tr className="bg-gray-100">
                 <th className="p-2 border">分组</th>
-                {PERMISSIONS.map((p) => (
-                  <th key={p} className="p-2 border" colSpan={2}>
+                {PERMISSIONS.map((p, pi) => (
+                  <th
+                    key={p}
+                    className={
+                      "p-2 border " + (pi % 2 === 0 ? "bg-gray-50" : "bg-gray-100")
+                    }
+                    colSpan={2}
+                  >
                     {p}
                   </th>
                 ))}
               </tr>
               <tr className="bg-gray-50">
                 <th className="p-1 border" />
-                {PERMISSIONS.map((p) => (
+                {PERMISSIONS.map((p, pi) => (
                   <React.Fragment key={p + '-sub'}>
-                    <th className="p-1 border">查看</th>
-                    <th className="p-1 border">编辑</th>
+                    <th
+                      className={
+                        'p-1 border ' + (pi % 2 === 0 ? 'bg-gray-50' : 'bg-gray-100')
+                      }
+                    >
+                      查看
+                    </th>
+                    <th
+                      className={
+                        'p-1 border ' + (pi % 2 === 0 ? 'bg-gray-50' : 'bg-gray-100')
+                      }
+                    >
+                      编辑
+                    </th>
                   </React.Fragment>
                 ))}
               </tr>
@@ -54,11 +72,12 @@ const PermissionManagement = () => {
               {groups.map((g, idx) => (
                 <tr key={g.name} className="border-t">
                   <td className="p-2 border">{g.name}</td>
-                  {PERMISSIONS.map((p) => {
+                  {PERMISSIONS.map((p, pi) => {
                     const perms = g.permissions[p] || { view: false, edit: false };
+                    const bg = pi % 2 === 0 ? 'bg-gray-50' : 'bg-gray-100';
                     return (
                       <React.Fragment key={g.name + p}>
-                        <td className="p-2 border">
+                        <td className={`p-2 border ${bg}`}>
                           <input
                             type="checkbox"
                             className="form-checkbox"
@@ -68,7 +87,7 @@ const PermissionManagement = () => {
                             }
                           />
                         </td>
-                        <td className="p-2 border">
+                        <td className={`p-2 border ${bg}`}>
                           <input
                             type="checkbox"
                             className="form-checkbox"

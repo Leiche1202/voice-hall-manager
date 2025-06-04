@@ -25,7 +25,7 @@ import HallManagement from "./components/HallManagement";
 import TeamManagement from "./components/TeamManagement";
 import { getAccounts } from "./services/accountService";
 import { getGroups } from "./services/groupService";
-import { getHalls } from "./services/hallService";
+import { getHalls, getAccessibleHalls } from "./services/hallService";
 
 // 登录页
 const LoginPage = () => {
@@ -175,7 +175,7 @@ const HallAdminDashboard = ({ navigate }) => {
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         transition={{ type: "spring", stiffness: 400, damping: 17 }}
-        className="bg-purple-600 text-white px-8 py-3 rounded-xl shadow-lg hover:bg-purple-700 transition-colors duration-200 text-lg"
+        className="bg-purple-600 text-white px-6 py-2 rounded-lg shadow-lg hover:bg-purple-700 transition-colors duration-200 text-base"
         onClick={() => navigate(to)}
       >
         {children}
@@ -187,29 +187,34 @@ const HallAdminDashboard = ({ navigate }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="p-6 text-center relative"
+      className="p-6 relative"
     >
       <LogoutButton />
-      <h1 className="text-4xl font-bold mb-8 text-gray-800">功能菜单</h1>
-      <div className="flex justify-center gap-6 flex-wrap">
-        <ButtonItem perm="档表管理" to="/schedule-management">
-          档表管理
-        </ButtonItem>
-        <ButtonItem perm="工资管理" to="/salary-management">
-          工资管理
-        </ButtonItem>
-        <ButtonItem perm="ID 编辑" to="/id-management">
-          ID 编辑
-        </ButtonItem>
-        <ButtonItem perm="权限管理" to="/permission-management">
-          权限管理
-        </ButtonItem>
-        <ButtonItem perm="分厅管理" to="/hall-management">
-          分厅管理
-        </ButtonItem>
-        <ButtonItem perm="团队管理" to="/team-management">
-          团队管理
-        </ButtonItem>
+      <h1 className="text-3xl font-bold mb-6 text-gray-800">后台管理</h1>
+      <div className="flex">
+        <div className="w-48 flex flex-col gap-4 mr-6">
+          <ButtonItem perm="档表管理" to="/schedule-management">
+            档表管理
+          </ButtonItem>
+          <ButtonItem perm="工资管理" to="/salary-management">
+            工资管理
+          </ButtonItem>
+          <ButtonItem perm="ID 编辑" to="/id-management">
+            ID 编辑
+          </ButtonItem>
+          <ButtonItem perm="权限管理" to="/permission-management">
+            权限管理
+          </ButtonItem>
+          <ButtonItem perm="分厅管理" to="/hall-management">
+            分厅管理
+          </ButtonItem>
+          <ButtonItem perm="团队管理" to="/team-management">
+            团队管理
+          </ButtonItem>
+        </div>
+        <div className="flex-1 flex items-center justify-center text-gray-500">
+          <span>数据展示区域</span>
+        </div>
       </div>
     </motion.div>
   );
@@ -269,10 +274,17 @@ const ScheduleManagement = () => {
   const [schedule, setSchedule] = React.useState(() =>
     Array.from({ length: 24 }, () => ({ 备档: "", 主档: "", 陪档: "" })),
   );
-  const halls = React.useMemo(() => getHalls(), []);
-  const [selectedHall, setSelectedHall] = React.useState(() =>
-    halls[0]?.name || ""
-  );
+  const { currentUser } = useApi();
+  const halls = React.useMemo(() => {
+    if (currentUser?.role === 'admin') return getHalls();
+    return getAccessibleHalls(currentUser?.username);
+  }, [currentUser]);
+  const [selectedHall, setSelectedHall] = React.useState('');
+
+  React.useEffect(() => {
+    const all = currentUser?.role === 'admin' ? getHalls() : getAccessibleHalls(currentUser?.username);
+    setSelectedHall(all[0]?.name || '');
+  }, [currentUser]);
   const [scheduleId, setScheduleId] = React.useState(null);
   const [selecting, setSelecting] = React.useState(null);
   const [hosts, setHosts] = React.useState(() =>

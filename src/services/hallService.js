@@ -27,3 +27,20 @@ export function deleteHall(index) {
   saveHalls(halls);
   return removed[0];
 }
+
+export function getAccessibleHalls(username) {
+  const halls = getHalls();
+  if (!username) return halls;
+  try {
+    const { getTeams } = require('./teamService');
+    const teams = getTeams();
+    const teamNames = teams
+      .filter((t) => t.owner === username || t.parent === username)
+      .map((t) => t.name);
+    return halls.filter(
+      (h) => h.manager === username || teamNames.includes(h.team)
+    );
+  } catch {
+    return halls.filter((h) => h.manager === username);
+  }
+}

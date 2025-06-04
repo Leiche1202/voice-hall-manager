@@ -38,7 +38,11 @@ export function ApiProvider({ children }) {
         }
         setLoading(false);
       });
-    return () => unsub();
+      const timer = setTimeout(() => setLoading(false), 1000);
+    return () => {
+      clearTimeout(timer);
+      unsub();
+    };
   }, []);
 
   const login = async (email, password) => {

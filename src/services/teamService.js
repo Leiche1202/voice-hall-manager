@@ -1,20 +1,42 @@
 export const DEFAULT_TEAMS = [];
-const TEAMS_VERSION = 1;
+const TEAMS_KEY = 'teams';
 
 export function getTeams() {
-  const ver = Number(localStorage.getItem('teams_version') || '0');
-  const stored = localStorage.getItem("teams");
-  if (!stored || ver !== TEAMS_VERSION) {
-    localStorage.setItem('teams_version', TEAMS_VERSION);
-    localStorage.setItem('teams', JSON.stringify(DEFAULT_TEAMS));
+  const stored = localStorage.getItem(TEAMS_KEY);
+  if (!stored) {
+    localStorage.setItem(TEAMS_KEY, JSON.stringify(DEFAULT_TEAMS));
     return DEFAULT_TEAMS.slice();
   }
-  return JSON.parse(stored);
+  try {
+    const teams = JSON.parse(stored);
+    const { getAccounts } = require('./accountService');
+    const accounts = getAccounts();
+    let changed = false;
+    teams.forEach((t) => {
+      if (!t.ownerId && t.owner) {
+        const acc = accounts.find((a) => a.username === t.owner);
+        if (acc) {
+          t.ownerId = acc.id;
+          changed = true;
+        }
+      }
+      if (!t.parentId && t.parent) {
+        const acc = accounts.find((a) => a.username === t.parent);
+        if (acc) {
+          t.parentId = acc.id;
+          changed = true;
+        }
+      }
+    });
+    if (changed) saveTeams(teams);
+    return teams;
+  } catch {
+    return DEFAULT_TEAMS.slice();
+  }
 }
 
 export function saveTeams(teams) {
-  localStorage.setItem("teams", JSON.stringify(teams));
-  localStorage.setItem('teams_version', TEAMS_VERSION);
+  localStorage.setItem(TEAMS_KEY, JSON.stringify(teams));
 }
 
 export function addTeam(team) {

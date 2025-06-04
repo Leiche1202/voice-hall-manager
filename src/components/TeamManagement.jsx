@@ -12,7 +12,7 @@ import {
   deleteTeam,
 } from "@/services/teamService";
 
-const emptyTeam = { name: "", owner: "", parent: "" };
+const emptyTeam = { name: "", ownerId: "", parentId: "" };
 
 const TeamManagement = () => {
   const navigate = useNavigate();
@@ -25,7 +25,7 @@ const TeamManagement = () => {
         .filter((a) =>
           (a.groups || []).some((g) => g === "厅管" || g === "多厅厅管")
         )
-        .map((a) => a.username),
+        .map((a) => ({ id: a.id, name: a.username })),
     [],
   );
 
@@ -38,7 +38,10 @@ const TeamManagement = () => {
 
   const handleAdd = () => {
     if (!newTeam.name.trim()) return;
-    addTeam({ ...newTeam, id: Date.now().toString() });
+    addTeam({
+      ...newTeam,
+      id: Date.now().toString(),
+    });
     setTeams(getTeams());
     setNewTeam(emptyTeam);
     setDirty(false);
@@ -84,15 +87,15 @@ const TeamManagement = () => {
                   <td className="p-2">
                     <select
                       className="border rounded px-2 py-1"
-                      value={team.owner}
+                      value={team.ownerId || ""}
                       onChange={(e) =>
-                        handleChange(idx, "owner", e.target.value)
+                        handleChange(idx, "ownerId", e.target.value)
                       }
                     >
                       <option value="">未指定</option>
                       {managers.map((m) => (
-                        <option key={m} value={m}>
-                          {m}
+                        <option key={m.id} value={m.id}>
+                          {m.name}
                         </option>
                       ))}
                     </select>
@@ -100,15 +103,15 @@ const TeamManagement = () => {
                   <td className="p-2">
                     <select
                       className="border rounded px-2 py-1"
-                      value={team.parent || ""}
+                      value={team.parentId || ""}
                       onChange={(e) =>
-                        handleChange(idx, "parent", e.target.value)
+                        handleChange(idx, "parentId", e.target.value)
                       }
                     >
                       <option value="">未指定</option>
                       {managers.map((m) => (
-                        <option key={m} value={m}>
-                          {m}
+                        <option key={m.id} value={m.id}>
+                          {m.name}
                         </option>
                       ))}
                     </select>
@@ -140,25 +143,25 @@ const TeamManagement = () => {
           />
           <select
             className="border rounded px-2 py-1 w-full"
-            value={newTeam.owner}
-            onChange={(e) => setNewTeam({ ...newTeam, owner: e.target.value })}
+            value={newTeam.ownerId}
+            onChange={(e) => setNewTeam({ ...newTeam, ownerId: e.target.value })}
           >
             <option value="">选择团队所有者</option>
             {managers.map((m) => (
-              <option key={m} value={m}>
-                {m}
+              <option key={m.id} value={m.id}>
+                {m.name}
               </option>
             ))}
           </select>
           <select
             className="border rounded px-2 py-1 w-full"
-            value={newTeam.parent}
-            onChange={(e) => setNewTeam({ ...newTeam, parent: e.target.value })}
+            value={newTeam.parentId}
+            onChange={(e) => setNewTeam({ ...newTeam, parentId: e.target.value })}
           >
             <option value="">选择上级厅管</option>
             {managers.map((m) => (
-              <option key={m} value={m}>
-                {m}
+              <option key={m.id} value={m.id}>
+                {m.name}
               </option>
             ))}
           </select>

@@ -1,20 +1,47 @@
 export const DEFAULT_HALLS = [];
-const HALLS_VERSION = 1;
+const HALLS_KEY = 'halls';
 
 export function getHalls() {
-  const ver = Number(localStorage.getItem('halls_version') || '0');
-  const stored = localStorage.getItem('halls');
-  if (!stored || ver !== HALLS_VERSION) {
-    localStorage.setItem('halls_version', HALLS_VERSION);
-    localStorage.setItem('halls', JSON.stringify(DEFAULT_HALLS));
+  const stored = localStorage.getItem(HALLS_KEY);
+  if (!stored) {
+    localStorage.setItem(HALLS_KEY, JSON.stringify(DEFAULT_HALLS));
     return DEFAULT_HALLS.slice();
   }
-  return JSON.parse(stored);
+  try {
+    const halls = JSON.parse(stored);
+    // 向后兼容旧数据结构
+    let changed = false;
+    const { getAccounts } = require('./accountService');
+    const { getTeams } = require('./teamService');
+    const accounts = getAccounts();
+    const teams = getTeams();
+    halls.forEach((h) => {
+      if (!h.managerId && h.manager) {
+        const acc = accounts.find((a) => a.username === h.manager);
+        if (acc) {
+          h.managerId = acc.id;
+          changed = true;
+        }
+      }
+      if (!h.teamId && h.team) {
+        const tm = teams.find((t) => t.name === h.team);
+        if (tm) {
+          h.teamId = tm.id;
+          changed = true;
+        }
+      }
+    });
+    if (changed) {
+      saveHalls(halls);
+    }
+    return halls;
+  } catch {
+    return DEFAULT_HALLS.slice();
+  }
 }
 
 export function saveHalls(halls) {
-  localStorage.setItem('halls', JSON.stringify(halls));
-  localStorage.setItem('halls_version', HALLS_VERSION);
+  localStorage.setItem(HALLS_KEY, JSON.stringify(halls));
 }
 
 export function addHall(hall) {
@@ -36,19 +63,19 @@ export function deleteHall(index) {
   return removed[0];
 }
 
-export function getAccessibleHalls(username) {
+export function getAccessibleHalls(userId) {
   const halls = getHalls();
-  if (!username) return halls;
+  if (!userId) return halls;
   try {
     const { getTeams } = require('./teamService');
     const teams = getTeams();
-    const teamNames = teams
-      .filter((t) => t.owner === username || t.parent === username)
-      .map((t) => t.name);
+    const teamIds = teams
+      .filter((t) => t.ownerId === userId || t.parentId === userId)
+      .map((t) => t.id);
     return halls.filter(
-      (h) => h.manager === username || teamNames.includes(h.team)
+      (h) => h.managerId === userId || teamIds.includes(h.teamId)
     );
   } catch {
-    return halls.filter((h) => h.manager === username);
+    return halls.filter((h) => h.managerId === userId);
   }
 }

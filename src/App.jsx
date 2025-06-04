@@ -281,12 +281,12 @@ const ScheduleManagement = () => {
   const { currentUser } = useApi();
   const halls = React.useMemo(() => {
     if (currentUser?.role === 'admin') return getHalls();
-    return getAccessibleHalls(currentUser?.username);
+    return getAccessibleHalls(currentUser?.id);
   }, [currentUser]);
   const [selectedHall, setSelectedHall] = React.useState('');
 
   React.useEffect(() => {
-    const all = currentUser?.role === 'admin' ? getHalls() : getAccessibleHalls(currentUser?.username);
+    const all = currentUser?.role === 'admin' ? getHalls() : getAccessibleHalls(currentUser?.id);
     setSelectedHall(all[0]?.name || '');
   }, [currentUser]);
   const [scheduleId, setScheduleId] = React.useState(null);

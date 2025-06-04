@@ -1,28 +1,35 @@
 export const DEFAULT_ACCOUNTS = [
   {
-    id: "1",
-    username: "admin",
-    password: "111",
-    groups: ["管理员"],
+    id: '1',
+    username: 'admin',
+    password: '111',
+    groups: ['管理员'],
   },
 ];
 
-const ACCOUNTS_VERSION = 1;
+const ACCOUNTS_KEY = 'accounts';
 
 export function getAccounts() {
-  const storedVersion = Number(localStorage.getItem("accounts_version") || "0");
-  const stored = localStorage.getItem("accounts");
-  if (!storedVersion || storedVersion < ACCOUNTS_VERSION || !stored) {
-    localStorage.setItem("accounts_version", ACCOUNTS_VERSION);
-    localStorage.setItem("accounts", JSON.stringify(DEFAULT_ACCOUNTS));
+  const stored = localStorage.getItem(ACCOUNTS_KEY);
+  if (!stored) {
+    localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(DEFAULT_ACCOUNTS));
     return DEFAULT_ACCOUNTS.slice();
   }
-  return JSON.parse(stored);
+  try {
+    const accounts = JSON.parse(stored);
+    if (!accounts.some((a) => a.username === 'admin')) {
+      accounts.unshift(DEFAULT_ACCOUNTS[0]);
+      saveAccounts(accounts);
+    }
+    return accounts;
+  } catch {
+    localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(DEFAULT_ACCOUNTS));
+    return DEFAULT_ACCOUNTS.slice();
+  }
 }
 
 export function saveAccounts(accounts) {
-  localStorage.setItem("accounts", JSON.stringify(accounts));
-  localStorage.setItem("accounts_version", ACCOUNTS_VERSION);
+  localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
 }
 
 export function addAccount(account) {

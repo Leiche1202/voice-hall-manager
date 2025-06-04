@@ -7,7 +7,7 @@ export const PERMISSIONS = [
   '团队管理'
 ];
 
-const GROUPS_VERSION = 3;
+const GROUPS_KEY = 'groups';
 
 function buildDefaultPerms(view = false, edit = false) {
   return PERMISSIONS.reduce((acc, p) => {
@@ -56,19 +56,21 @@ export const DEFAULT_GROUPS = [
 ];
 
 export function getGroups() {
-  const storedVer = Number(localStorage.getItem('groups_version') || '0');
-  const stored = localStorage.getItem('groups');
-  if (!stored || storedVer !== GROUPS_VERSION) {
-    localStorage.setItem('groups_version', GROUPS_VERSION);
-    localStorage.setItem('groups', JSON.stringify(DEFAULT_GROUPS));
+  const stored = localStorage.getItem(GROUPS_KEY);
+  if (!stored) {
+    localStorage.setItem(GROUPS_KEY, JSON.stringify(DEFAULT_GROUPS));
     return DEFAULT_GROUPS.slice();
   }
-  return JSON.parse(stored);
+  try {
+    return JSON.parse(stored);
+  } catch {
+    localStorage.setItem(GROUPS_KEY, JSON.stringify(DEFAULT_GROUPS));
+    return DEFAULT_GROUPS.slice();
+  }
 }
 
 export function saveGroups(groups) {
-  localStorage.setItem('groups', JSON.stringify(groups));
-  localStorage.setItem('groups_version', GROUPS_VERSION);
+  localStorage.setItem(GROUPS_KEY, JSON.stringify(groups));
 }
 
 export function updateGroup(index, group) {

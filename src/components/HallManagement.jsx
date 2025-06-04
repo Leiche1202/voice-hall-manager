@@ -12,7 +12,7 @@ const HallManagement = () => {
   const navigate = useNavigate();
   const [halls, setHalls] = React.useState(() => getHalls());
   const [dirty, setDirty] = React.useState(false);
-  const [newHall, setNewHall] = React.useState({ name: "", manager: "", team: "" });
+  const [newHall, setNewHall] = React.useState({ name: "", managerId: "", teamId: "" });
   const accounts = React.useMemo(() => getAccounts(), []);
   const teams = React.useMemo(() => getTeams(), []);
   const hallManagers = React.useMemo(
@@ -21,15 +21,20 @@ const HallManagement = () => {
         .filter((a) =>
           (a.groups || []).some((g) => g === "厅管" || g === "多厅厅管")
         )
-        .map((a) => a.username),
+        .map((a) => ({ id: a.id, name: a.username })),
     [accounts],
   );
 
   const handleAddHall = () => {
     if (!newHall.name.trim()) return;
-    addHall({ id: Date.now().toString(), ...newHall, name: newHall.name.trim() });
+    addHall({
+      id: Date.now().toString(),
+      name: newHall.name.trim(),
+      managerId: newHall.managerId,
+      teamId: newHall.teamId,
+    });
     setHalls(getHalls());
-    setNewHall({ name: "", manager: "", team: "" });
+    setNewHall({ name: "", managerId: "", teamId: "" });
     setDirty(false);
   };
 
@@ -68,24 +73,24 @@ const HallManagement = () => {
           />
           <select
             className="border rounded px-2 py-1 w-full"
-            value={newHall.manager}
-            onChange={(e) => setNewHall({ ...newHall, manager: e.target.value })}
+            value={newHall.managerId}
+            onChange={(e) => setNewHall({ ...newHall, managerId: e.target.value })}
           >
             <option value="">选择厅管</option>
             {hallManagers.map((m) => (
-              <option key={m} value={m}>
-                {m}
+              <option key={m.id} value={m.id}>
+                {m.name}
               </option>
             ))}
           </select>
           <select
             className="border rounded px-2 py-1 w-full"
-            value={newHall.team}
-            onChange={(e) => setNewHall({ ...newHall, team: e.target.value })}
+            value={newHall.teamId}
+            onChange={(e) => setNewHall({ ...newHall, teamId: e.target.value })}
           >
             <option value="">选择隶属团队</option>
             {teams.map((t) => (
-              <option key={t.id} value={t.name}>
+              <option key={t.id} value={t.id}>
                 {t.name}
               </option>
             ))}
@@ -120,13 +125,13 @@ const HallManagement = () => {
                   <td className="p-2">
                     <select
                       className="border rounded px-2 py-1"
-                      value={hall.manager || ""}
-                      onChange={(e) => handleChangeHall(index, "manager", e.target.value)}
+                      value={hall.managerId || ""}
+                      onChange={(e) => handleChangeHall(index, "managerId", e.target.value)}
                     >
                       <option value="">未指定</option>
                       {hallManagers.map((m) => (
-                        <option key={m} value={m}>
-                          {m}
+                        <option key={m.id} value={m.id}>
+                          {m.name}
                         </option>
                       ))}
                     </select>
@@ -134,12 +139,12 @@ const HallManagement = () => {
                   <td className="p-2">
                     <select
                       className="border rounded px-2 py-1"
-                      value={hall.team || ""}
-                      onChange={(e) => handleChangeHall(index, "team", e.target.value)}
+                      value={hall.teamId || ""}
+                      onChange={(e) => handleChangeHall(index, "teamId", e.target.value)}
                     >
                       <option value="">未指定</option>
                       {teams.map((t) => (
-                        <option key={t.id} value={t.name}>
+                        <option key={t.id} value={t.id}>
                           {t.name}
                         </option>
                       ))}

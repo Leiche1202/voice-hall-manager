@@ -10,8 +10,8 @@ import {
   SCHEDULES_STORE
 } from '../lib/localDb';
 
-// 判断是否使用本地数据库（开发环境）
-const useLocalDb = import.meta.env.DEV && (!import.meta.env.VITE_API_KEY || import.meta.env.VITE_API_KEY === 'mock-api-key');
+// 默认使用浏览器端 IndexedDB，除非显式设置 VITE_USE_FIREBASE=true
+const useLocalDb = import.meta.env.VITE_USE_FIREBASE !== 'true';
 
 // 如果使用本地数据库，输出提示信息
 if (useLocalDb) {

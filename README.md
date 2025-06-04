@@ -39,6 +39,10 @@ npm run dev
 npm run build
 ```
 
+### 启用 Firebase（可选）
+
+默认情况下，应用会将数据保存在浏览器的 IndexedDB 中。如果需要连接 Firebase 进行远程存储，请在构建或运行时设置环境变量 `VITE_USE_FIREBASE=true`。
+
 ## 部署
 
 本项目使用Vercel进行部署，并使用Firebase作为后端服务。

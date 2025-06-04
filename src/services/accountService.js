@@ -1,8 +1,14 @@
 const API = '/api/accounts';
 
 export async function getAccounts() {
-  const res = await fetch(API);
-  return res.json();
+  try {
+    const res = await fetch(API);
+    if (!res.ok) throw new Error('network');
+    return await res.json();
+  } catch (err) {
+    const localRes = await fetch('/accounts.json');
+    return localRes.json();
+  }
 }
 
 export async function addAccount(account) {

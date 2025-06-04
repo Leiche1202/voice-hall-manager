@@ -1,0 +1,14 @@
+[
+  {
+    "id": 1,
+    "username": "admin",
+    "password": "111",
+    "groups": ["管理员"]
+  },
+  {
+    "id": 2,
+    "username": "manager",
+    "password": "222",
+    "groups": ["厅管"]
+  }
+]

@@ -3,7 +3,8 @@ export const DEFAULT_ACCOUNTS = [
     id: '1',
     username: 'admin',
     password: '111',
-    groups: ['管理员']
+    groups: ['管理员'],
+    hall: ''
   }
 ];
 

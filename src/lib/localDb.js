@@ -3,6 +3,7 @@
  * 在开发环境中用于模拟数据库操作，保存测试中的实际更改
  */
 
+// 请勿随意修改数据库名称或版本，否则可能导致已保存的数据丢失
 const DB_NAME = 'testUiLocalDb';
 const DB_VERSION = 1;
 export const SCHEDULES_STORE = 'schedules';

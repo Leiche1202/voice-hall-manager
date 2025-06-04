@@ -1,12 +1,20 @@
 export const DEFAULT_HALLS = [];
+const HALLS_VERSION = 1;
 
 export function getHalls() {
+  const ver = Number(localStorage.getItem('halls_version') || '0');
   const stored = localStorage.getItem('halls');
-  return stored ? JSON.parse(stored) : DEFAULT_HALLS.slice();
+  if (!stored || ver !== HALLS_VERSION) {
+    localStorage.setItem('halls_version', HALLS_VERSION);
+    localStorage.setItem('halls', JSON.stringify(DEFAULT_HALLS));
+    return DEFAULT_HALLS.slice();
+  }
+  return JSON.parse(stored);
 }
 
 export function saveHalls(halls) {
   localStorage.setItem('halls', JSON.stringify(halls));
+  localStorage.setItem('halls_version', HALLS_VERSION);
 }
 
 export function addHall(hall) {

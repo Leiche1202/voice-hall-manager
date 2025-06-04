@@ -24,11 +24,17 @@ const IdManagement = () => {
   const [newAccount, setNewAccount] = React.useState(emptyAccount);
   const groups = React.useMemo(() => getGroups(), []);
 
+  const saveTimer = React.useRef();
+  const debouncedSave = React.useCallback((data) => {
+    clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => saveAccounts(data), 300);
+  }, []);
+
   const handleChange = (index, field, value) => {
     const updated = [...accounts];
     updated[index][field] = value;
     setAccounts(updated);
-    saveAccounts(updated);
+    debouncedSave(updated);
   };
 
   const toggleGroup = (index, groupName, checked) => {
@@ -38,10 +44,16 @@ const IdManagement = () => {
       ? Array.from(new Set([...current, groupName]))
       : current.filter((g) => g !== groupName);
     setAccounts(updated);
-    saveAccounts(updated);
+    debouncedSave(updated);
   };
 
   const handleAdd = () => {
+    const name = newAccount.username.trim();
+    if (!name) return;
+    if (accounts.some((a) => a.username === name)) {
+      alert('用户名已存在');
+      return;
+    }
     const account = {
       ...newAccount,
       id: Date.now().toString(),
@@ -56,6 +68,10 @@ const IdManagement = () => {
     deleteAccount(index);
     setAccounts(getAccounts());
   };
+
+  React.useEffect(() => {
+    return () => clearTimeout(saveTimer.current);
+  }, []);
 
 
   return (

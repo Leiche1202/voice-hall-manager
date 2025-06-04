@@ -11,7 +11,7 @@ export async function getHalls() {
 
 export async function addHall(hall) {
   const ref = await addDoc(hallsCol, hall);
-  return ref.id;
+  return { id: ref.id };
 }
 
 export async function updateHall(id, hall) {

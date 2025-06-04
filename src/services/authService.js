@@ -9,10 +9,10 @@ export async function login(phone, password) {
     throw new Error('Phone not found');
   }
   const cred = await signInWithEmailAndPassword(auth, accountByPhone.email, password);
-  const ref = doc(db, 'accounts', cred.user.uid);
+  const ref = doc(db, 'accounts', accountByPhone.id);
   const snap = await getDoc(ref);
   const account = snap.exists() ? snap.data() : { phone, username: accountByPhone.username };
-  return { user: { id: cred.user.uid, ...account }, token: await cred.user.getIdToken() };
+  return { user: { id: accountByPhone.id, ...account }, token: await cred.user.getIdToken() };
 }
 
 export async function logout() {

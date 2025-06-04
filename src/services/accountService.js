@@ -21,7 +21,7 @@ export async function addAccount(account) {
     phone: account.phone || ''
   };
   const ref = await addDoc(accountsCol, withEmail);
-  return ref.id;
+  return { id: ref.id };
 }
 
 export async function updateAccount(id, account) {
@@ -38,6 +38,13 @@ export async function updateAccount(id, account) {
 export async function deleteAccount(id) {
   await deleteDoc(doc(db, 'accounts', id));
   return true;
+}
+
+export async function getAccountByEmail(email) {
+  const q = query(accountsCol, where('email', '==', email));
+  const snap = await getDocs(q);
+  const docSnap = snap.docs[0];
+  return docSnap ? { id: docSnap.id, ...docSnap.data() } : null;
 }
 
 export async function getAccountByPhone(phone) {

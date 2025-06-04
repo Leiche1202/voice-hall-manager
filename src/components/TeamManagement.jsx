@@ -5,29 +5,30 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
 import { getAccounts } from "@/services/accountService";
-import {
-  getTeams,
-  saveTeams,
-  addTeam,
-  deleteTeam,
-} from "@/services/teamService";
+import { getTeams, addTeam, updateTeam, deleteTeam } from "@/services/teamService";
 
 const emptyTeam = { name: "", ownerId: "", parentId: "" };
 
 const TeamManagement = () => {
   const navigate = useNavigate();
-  const [teams, setTeams] = React.useState(() => getTeams());
+  const [teams, setTeams] = React.useState([]);
   const [dirty, setDirty] = React.useState(false);
   const [newTeam, setNewTeam] = React.useState(emptyTeam);
-  const managers = React.useMemo(
-    () =>
-      getAccounts()
-        .filter((a) =>
-          (a.groups || []).some((g) => g === "厅管" || g === "多厅厅管")
-        )
-        .map((a) => ({ id: a.id, name: a.username })),
-    [],
-  );
+  const [managers, setManagers] = React.useState([]);
+  const [removedIds, setRemovedIds] = React.useState([]);
+
+  React.useEffect(() => {
+    getTeams().then(setTeams);
+    getAccounts().then((acs) => {
+      setManagers(
+        acs
+          .filter((a) =>
+            (a.groups || []).some((g) => g === "厅管" || g === "多厅厅管")
+          )
+          .map((a) => ({ id: a.id, name: a.username }))
+      );
+    });
+  }, []);
 
   const handleChange = (index, field, value) => {
     const updated = [...teams];
@@ -38,19 +39,40 @@ const TeamManagement = () => {
 
   const handleAdd = () => {
     if (!newTeam.name.trim()) return;
-    addTeam({
-      ...newTeam,
-      id: Date.now().toString(),
-    });
-    setTeams(getTeams());
+    setTeams((prev) => [
+      ...prev,
+      { ...newTeam, id: Date.now().toString(), _new: true },
+    ]);
     setNewTeam(emptyTeam);
-    setDirty(false);
-    saveTeams(getTeams());
+    setDirty(true);
   };
 
   const handleDelete = (index) => {
-    deleteTeam(index);
-    setTeams(getTeams());
+    setTeams((prev) => {
+      const removed = prev[index];
+      if (removed && !removed._new) {
+        setRemovedIds((ids) => [...ids, removed.id]);
+      }
+      return prev.filter((_, i) => i !== index);
+    });
+    setDirty(true);
+  };
+
+  const handleSave = async () => {
+    for (const id of removedIds) {
+      await deleteTeam(id);
+    }
+    for (const team of teams) {
+      if (team._new) {
+        const saved = await addTeam(team);
+        team.id = saved.id;
+        delete team._new;
+      } else {
+        await updateTeam(team.id, team);
+      }
+    }
+    setRemovedIds([]);
+    setTeams([...teams]);
     setDirty(false);
   };
 
@@ -170,7 +192,7 @@ const TeamManagement = () => {
         </CardContent>
       </Card>
       <div className="mt-6 flex justify-center gap-4">
-        <Button onClick={() => { saveTeams(teams); setDirty(false); }} disabled={!dirty}>
+        <Button onClick={handleSave} disabled={!dirty}>
           保存修改
         </Button>
         <Button variant="secondary" onClick={() => navigate(-1)}>

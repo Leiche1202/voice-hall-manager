@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { mockLogin } from '../services/authService';
+import { login as apiLogin } from '../services/authService';
 import { getScheduleByDate, addSchedule, updateSchedule } from '../services/scheduleService';
 
 const ApiContext = createContext();
@@ -25,7 +25,7 @@ export function ApiProvider({ children }) {
   const login = async (username, password) => {
     try {
       // 使用模拟登录（开发阶段）
-      const result = await mockLogin(username, password);
+      const result = await apiLogin(username, password);
       let role = '';
       if (result.user.groups?.includes('管理员')) {
         role = 'admin';

@@ -154,7 +154,11 @@ const HallAdminDashboardWrapper = () => {
 // 厅管后台
 const HallAdminDashboard = ({ navigate }) => {
   const { currentUser } = useApi();
-  const groups = React.useMemo(() => getGroups(), []);
+  const [groups, setGroups] = React.useState([]);
+
+  React.useEffect(() => {
+    getGroups().then(setGroups);
+  }, []);
 
   const permissions = React.useMemo(() => {
     const perms = {};
@@ -295,23 +299,32 @@ const ScheduleManagement = () => {
     Array.from({ length: 24 }, () => ({ 备档: "", 主档: "", 陪档: "" })),
   );
   const { currentUser } = useApi();
-  const halls = React.useMemo(() => {
-    if (currentUser?.role === 'admin') return getHalls();
-    return getAccessibleHalls(currentUser?.id);
+  const [halls, setHalls] = React.useState([]);
+
+  React.useEffect(() => {
+    if (!currentUser) return;
+    if (currentUser.role === 'admin') {
+      getHalls().then(setHalls);
+    } else {
+      getAccessibleHalls(currentUser.id).then(setHalls);
+    }
   }, [currentUser]);
   const [selectedHall, setSelectedHall] = React.useState('');
 
   React.useEffect(() => {
-    const all = currentUser?.role === 'admin' ? getHalls() : getAccessibleHalls(currentUser?.id);
-    setSelectedHall(all[0]?.name || '');
-  }, [currentUser]);
+    if (halls.length) {
+      setSelectedHall(halls[0].name);
+    }
+  }, [halls]);
   const [scheduleId, setScheduleId] = React.useState(null);
   const [selecting, setSelecting] = React.useState(null);
-  const [hosts, setHosts] = React.useState(() =>
-    getAccounts()
-      .filter((a) => (a.groups || []).includes("主持"))
-      .map((a) => a.username),
-  );
+  const [hosts, setHosts] = React.useState([]);
+
+  React.useEffect(() => {
+    getAccounts().then((acs) => {
+      setHosts(acs.filter((a) => (a.groups || []).includes('主持')).map((a) => a.username));
+    });
+  }, []);
   const [isSaving, setIsSaving] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(true);
   const [saveStatus, setSaveStatus] = React.useState(""); // 添加保存状态提示
@@ -357,11 +370,9 @@ const ScheduleManagement = () => {
 
   const handleCellClick = (hour, role) => {
     if (role !== "备档") return;
-    setHosts(
-      getAccounts()
-        .filter((a) => (a.groups || []).includes("主持"))
-        .map((a) => a.username),
-    );
+    getAccounts().then((acs) => {
+      setHosts(acs.filter((a) => (a.groups || []).includes('主持')).map((a) => a.username));
+    });
     setSelecting({ hour, role });
   };
 

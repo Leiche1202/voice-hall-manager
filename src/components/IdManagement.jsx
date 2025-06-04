@@ -6,7 +6,9 @@ import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
 import {
   getAccounts,
-  saveAccounts,
+  addAccount,
+  updateAccount,
+  deleteAccount,
 } from "@/services/accountService";
 import { getGroups } from "@/services/groupService";
 
@@ -18,9 +20,17 @@ const emptyAccount = {
 
 const IdManagement = () => {
   const navigate = useNavigate();
-  const [accounts, setAccounts] = React.useState(() => getAccounts());
+  const [accounts, setAccounts] = React.useState([]);
   const [newAccount, setNewAccount] = React.useState(emptyAccount);
-  const groups = React.useMemo(() => getGroups(), []);
+  const [removedIds, setRemovedIds] = React.useState([]);
+  const [groups, setGroupList] = React.useState([]);
+
+  React.useEffect(() => {
+    getAccounts().then(setAccounts);
+    getGroups().then((gs) => {
+      setGroupList(gs);
+    });
+  }, []);
 
   const [dirty, setDirty] = React.useState(false);
 
@@ -51,6 +61,7 @@ const IdManagement = () => {
     const account = {
       ...newAccount,
       id: Date.now().toString(),
+      _new: true
     };
     setAccounts((prev) => [...prev, account]);
     setNewAccount(emptyAccount);
@@ -58,8 +69,32 @@ const IdManagement = () => {
   };
 
   const handleDelete = (index) => {
-    setAccounts((prev) => prev.filter((_, i) => i !== index));
+    setAccounts((prev) => {
+      const removed = prev[index];
+      if (removed && !removed._new) {
+        setRemovedIds((ids) => [...ids, removed.id]);
+      }
+      return prev.filter((_, i) => i !== index);
+    });
     setDirty(true);
+  };
+
+  const handleSave = async () => {
+    for (const id of removedIds) {
+      await deleteAccount(id);
+    }
+    for (const acc of accounts) {
+      if (acc._new) {
+        const saved = await addAccount(acc);
+        acc.id = saved.id;
+        delete acc._new;
+      } else {
+        await updateAccount(acc.id, acc);
+      }
+    }
+    setRemovedIds([]);
+    setAccounts([...accounts]);
+    setDirty(false);
   };
 
 
@@ -140,7 +175,7 @@ const IdManagement = () => {
         </CardContent>
       </Card>
       <div className="mt-4">
-        <Button onClick={() => { saveAccounts(accounts); setDirty(false); }} disabled={!dirty}>
+        <Button onClick={handleSave} disabled={!dirty}>
           保存修改
         </Button>
       </div>

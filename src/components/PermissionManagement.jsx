@@ -3,11 +3,15 @@ import { motion } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { getGroups, saveGroups, PERMISSIONS } from '@/services/groupService';
+import { getGroups, updateGroup, PERMISSIONS } from '@/services/groupService';
 
 const PermissionManagement = () => {
   const navigate = useNavigate();
-  const [groups, setGroups] = React.useState(() => getGroups());
+  const [groups, setGroups] = React.useState([]);
+
+  React.useEffect(() => {
+    getGroups().then(setGroups);
+  }, []);
 
   const [dirty, setDirty] = React.useState(false);
   const togglePermission = (gIndex, perm, type, checked) => {
@@ -108,7 +112,15 @@ const PermissionManagement = () => {
         </CardContent>
       </Card>
       <div className="mt-6 flex justify-center gap-4">
-        <Button onClick={() => { saveGroups(groups); setDirty(false); }} disabled={!dirty}>
+        <Button
+          onClick={async () => {
+            for (const g of groups) {
+              await updateGroup(g.id, g);
+            }
+            setDirty(false);
+          }}
+          disabled={!dirty}
+        >
           保存修改
         </Button>
         <Button variant="secondary" onClick={() => navigate(-1)}>

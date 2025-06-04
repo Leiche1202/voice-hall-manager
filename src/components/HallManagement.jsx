@@ -5,16 +5,23 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
 import { getAccounts } from "@/services/accountService";
-import { getHalls, addHall, deleteHall, saveHalls } from "@/services/hallService";
+import { getHalls, addHall, updateHall, deleteHall } from "@/services/hallService";
 import { getTeams } from "@/services/teamService";
 
 const HallManagement = () => {
   const navigate = useNavigate();
-  const [halls, setHalls] = React.useState(() => getHalls());
+  const [halls, setHalls] = React.useState([]);
   const [dirty, setDirty] = React.useState(false);
   const [newHall, setNewHall] = React.useState({ name: "", managerId: "", teamId: "" });
-  const accounts = React.useMemo(() => getAccounts(), []);
-  const teams = React.useMemo(() => getTeams(), []);
+  const [removedIds, setRemovedIds] = React.useState([]);
+  const [accounts, setAccounts] = React.useState([]);
+  const [teams, setTeams] = React.useState([]);
+
+  React.useEffect(() => {
+    getHalls().then(setHalls);
+    getAccounts().then(setAccounts);
+    getTeams().then(setTeams);
+  }, []);
   const hallManagers = React.useMemo(
     () =>
       accounts
@@ -27,22 +34,29 @@ const HallManagement = () => {
 
   const handleAddHall = () => {
     if (!newHall.name.trim()) return;
-    addHall({
-      id: Date.now().toString(),
-      name: newHall.name.trim(),
-      managerId: newHall.managerId,
-      teamId: newHall.teamId,
-    });
-    setHalls(getHalls());
+    setHalls((prev) => [
+      ...prev,
+      {
+        id: Date.now().toString(),
+        name: newHall.name.trim(),
+        managerId: newHall.managerId,
+        teamId: newHall.teamId,
+        _new: true,
+      },
+    ]);
     setNewHall({ name: "", managerId: "", teamId: "" });
-    setDirty(false);
-    saveHalls(getHalls());
+    setDirty(true);
   };
 
   const handleDeleteHall = (index) => {
-    deleteHall(index);
-    setHalls(getHalls());
-    setDirty(false);
+    setHalls((prev) => {
+      const removed = prev[index];
+      if (removed && !removed._new) {
+        setRemovedIds((ids) => [...ids, removed.id]);
+      }
+      return prev.filter((_, i) => i !== index);
+    });
+    setDirty(true);
   };
 
   const handleChangeHall = (index, field, value) => {
@@ -50,6 +64,24 @@ const HallManagement = () => {
     updated[index][field] = value;
     setHalls(updated);
     setDirty(true);
+  };
+
+  const handleSave = async () => {
+    for (const id of removedIds) {
+      await deleteHall(id);
+    }
+    for (const hall of halls) {
+      if (hall._new) {
+        const saved = await addHall(hall);
+        hall.id = saved.id;
+        delete hall._new;
+      } else {
+        await updateHall(hall.id, hall);
+      }
+    }
+    setRemovedIds([]);
+    setHalls([...halls]);
+    setDirty(false);
   };
 
 
@@ -163,7 +195,7 @@ const HallManagement = () => {
         </CardContent>
       </Card>
       <div className="mt-6 flex justify-center gap-4">
-        <Button onClick={() => { saveHalls(halls); setDirty(false); }} disabled={!dirty}>
+        <Button onClick={handleSave} disabled={!dirty}>
           保存修改
         </Button>
         <Button variant="secondary" onClick={() => navigate(-1)}>

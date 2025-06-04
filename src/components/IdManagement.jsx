@@ -75,7 +75,7 @@ const IdManagement = () => {
       transition={{ duration: 0.5 }}
       className="p-6 text-center relative"
     >
-      <h1 className="text-3xl font-bold mb-8 text-gray-800">ID 编辑</h1>
+      <h1 className="text-3xl font-bold mb-8 text-gray-800">用户编辑</h1>
       <Card className="shadow">
         <CardContent className="p-0 overflow-x-auto">
           <table className="w-full text-left border">

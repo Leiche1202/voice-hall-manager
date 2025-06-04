@@ -95,7 +95,7 @@ const HallManagement = () => {
               </option>
             ))}
           </select>
-          <Button onClick={handleAddHall}>添加</Button>
+          <Button type="button" onClick={handleAddHall}>添加</Button>
         </CardContent>
       </Card>
       <Card className="shadow mb-6">

@@ -192,7 +192,7 @@ const IdManagement = () => {
               </label>
             ))}
           </div>
-          <Button onClick={handleAdd}>添加</Button>
+          <Button type="button" onClick={handleAdd}>添加</Button>
         </CardContent>
       </Card>
       <div className="mt-6 flex justify-center gap-4">

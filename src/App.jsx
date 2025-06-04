@@ -169,6 +169,15 @@ const HallAdminDashboard = ({ navigate }) => {
     return perms;
   }, [currentUser, groups]);
 
+  const sidebarColors = [
+    'bg-purple-500 hover:bg-purple-600',
+    'bg-purple-600 hover:bg-purple-700',
+    'bg-purple-700 hover:bg-purple-800',
+    'bg-purple-800 hover:bg-purple-900',
+    'bg-purple-900 hover:bg-purple-950',
+    'bg-purple-950 hover:bg-purple-950',
+  ];
+
   const ButtonItem = ({ perm, to, colorClass = 'bg-purple-600 hover:bg-purple-700', children }) =>
     permissions[perm] ? (
       <motion.button
@@ -194,24 +203,24 @@ const HallAdminDashboard = ({ navigate }) => {
       <div className="flex">
         <div className="w-48 flex flex-col gap-4 mr-6">
           <div className="border rounded-lg p-2 mb-4 space-y-2">
-            <ButtonItem perm="档表管理" to="/schedule-management" colorClass="bg-purple-500 hover:bg-purple-600">
+            <ButtonItem perm="档表管理" to="/schedule-management" colorClass={sidebarColors[0]}>
               档表管理
             </ButtonItem>
-            <ButtonItem perm="工资管理" to="/salary-management" colorClass="bg-purple-600 hover:bg-purple-700">
+            <ButtonItem perm="工资管理" to="/salary-management" colorClass={sidebarColors[1]}>
               工资管理
             </ButtonItem>
           </div>
           <div className="border rounded-lg p-2 space-y-2">
-            <ButtonItem perm="用户编辑" to="/id-management" colorClass="bg-purple-500 hover:bg-purple-600">
+            <ButtonItem perm="用户编辑" to="/id-management" colorClass={sidebarColors[2]}>
               用户编辑
             </ButtonItem>
-            <ButtonItem perm="权限管理" to="/permission-management" colorClass="bg-purple-600 hover:bg-purple-700">
+            <ButtonItem perm="权限管理" to="/permission-management" colorClass={sidebarColors[3]}>
               权限管理
             </ButtonItem>
-            <ButtonItem perm="分厅管理" to="/hall-management" colorClass="bg-purple-700 hover:bg-purple-800">
+            <ButtonItem perm="分厅管理" to="/hall-management" colorClass={sidebarColors[4]}>
               分厅管理
             </ButtonItem>
-            <ButtonItem perm="团队管理" to="/team-management" colorClass="bg-purple-500 hover:bg-purple-600">
+            <ButtonItem perm="团队管理" to="/team-management" colorClass={sidebarColors[5]}>
               团队管理
             </ButtonItem>
           </div>

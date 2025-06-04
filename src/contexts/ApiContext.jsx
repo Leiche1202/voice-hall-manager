@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { login as apiLogin, logout as apiLogout } from '../services/authService';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../services/firebase';
-import { getAccount } from '../services/accountService';
+import { getAccount, getAccountByEmail } from '../services/accountService';
 import { getScheduleByDate, addSchedule, updateSchedule } from '../services/scheduleService';
 
 const ApiContext = createContext();
@@ -16,24 +16,28 @@ export function ApiProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        const acc = await getAccount(user.uid);
-        const data = acc || { username: user.email };
-        let role = '';
-        if (data.groups?.includes('管理员')) {
-          role = 'admin';
-        } else if (data.groups?.includes('主持')) {
-          role = 'host';
-        } else if (data.groups?.some((g) => ['厅管', '预备厅管', '多厅厅管'].includes(g))) {
-          role = 'manager';
+      const unsub = onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          let acc = await getAccount(user.uid);
+          if (!acc) {
+            acc = await getAccountByEmail(user.email);
+          }
+          const data = acc || { username: user.email };
+          let role = '';
+          if (data.groups?.includes('管理员')) {
+            role = 'admin';
+          } else if (data.groups?.includes('主持')) {
+            role = 'host';
+          } else if (data.groups?.some((g) => ['厅管', '预备厅管', '多厅厅管'].includes(g))) {
+            role = 'manager';
+          }
+          const userId = acc ? acc.id : user.uid;
+          setCurrentUser({ id: userId, ...data, role });
+        } else {
+          setCurrentUser(null);
         }
-        setCurrentUser({ id: user.uid, ...data, role });
-      } else {
-        setCurrentUser(null);
-      }
-      setLoading(false);
-    });
+        setLoading(false);
+      });
     return () => unsub();
   }, []);
 

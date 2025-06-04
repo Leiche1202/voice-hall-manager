@@ -10,7 +10,7 @@ export async function getTeams() {
 
 export async function addTeam(team) {
   const ref = await addDoc(teamsCol, team);
-  return ref.id;
+  return { id: ref.id };
 }
 
 export async function updateTeam(id, team) {

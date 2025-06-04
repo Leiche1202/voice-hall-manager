@@ -8,8 +8,8 @@ export const PERMISSIONS = [
 ];
 
 const API = '/api/groups';
-// Determine the correct path for the fallback groups file
-const LOCAL_GROUPS_URL = `${import.meta.env.BASE_URL}groups.json`;
+// Local fallback when the API is unreachable
+const LOCAL_GROUPS_URL = 'groups.json';
 
 export async function getGroups() {
   try {

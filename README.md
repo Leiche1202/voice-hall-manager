@@ -42,8 +42,6 @@ npm run build
 ## 部署
 
 本项目使用 Vercel 进行部署，后端由远程 API 提供。
-### 本地账号数据
-当远程 API 无法访问时，系统会从 `public/accounts.json` 加载默认账号。
 
 
 ## 许可证

@@ -80,7 +80,6 @@ export function ApiProvider({ children }) {
   // 保存档表
   const saveSchedule = async (scheduleData) => {
     try {
-      let result;
       // 确保数据格式正确
       const validatedData = {
         ...scheduleData,
@@ -93,18 +92,26 @@ export function ApiProvider({ children }) {
         delete validatedData.id;
       }
       
+      let id = scheduleData.id;
       if (scheduleData.id) {
         // 更新现有档表
-        result = await updateSchedule(scheduleData.id, validatedData);
+        await updateSchedule(scheduleData.id, validatedData);
       } else {
         // 创建新档表
-        result = await addSchedule(validatedData);
+        id = await addSchedule(validatedData);
       }
-      
+
+      // 更新缓存，确保刷新后能看到最新数据
+      const dateStr = validatedData.date.toISOString().split('T')[0];
+      const cacheKey = `schedule_${dateStr}`;
+      sessionStorage.setItem(cacheKey, JSON.stringify({
+        id: id,
+        ...validatedData
+      }));
+
       // 减少延迟时间，提高响应速度
       await new Promise(resolve => setTimeout(resolve, 300));
-      
-      return result;
+      return id;
     } catch (error) {
       console.error("Save schedule error:", error);
       // 重新抛出错误，以便UI层可以处理

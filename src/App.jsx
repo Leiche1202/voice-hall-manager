@@ -185,18 +185,18 @@ const HallAdminDashboard = ({ navigate }) => {
     'bg-purple-950 hover:bg-purple-950',
   ];
 
-  const ButtonItem = ({ perm, to, colorClass = 'bg-purple-600 hover:bg-purple-700', children }) =>
-    permissions[perm] ? (
-      <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        transition={{ type: "spring", stiffness: 400, damping: 17 }}
-        className={`${colorClass} text-white px-6 py-2 rounded-lg shadow-lg transition-colors duration-200 text-base`}
-        onClick={() => navigate(to)}
-      >
-        {children}
-      </motion.button>
-    ) : null;
+  // Temporarily show all dashboard buttons regardless of permissions
+  const ButtonItem = ({ perm, to, colorClass = 'bg-purple-600 hover:bg-purple-700', children }) => (
+    <motion.button
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      transition={{ type: "spring", stiffness: 400, damping: 17 }}
+      className={`${colorClass} text-white px-6 py-2 rounded-lg shadow-lg transition-colors duration-200 text-base`}
+      onClick={() => navigate(to)}
+    >
+      {children}
+    </motion.button>
+  );
 
   return (
     <motion.div

@@ -25,11 +25,13 @@ const IdManagement = () => {
   const [newAccount, setNewAccount] = React.useState(emptyAccount);
   const [removedIds, setRemovedIds] = React.useState([]);
   const [groups, setGroupList] = React.useState([]);
+  const [loadingGroups, setLoadingGroups] = React.useState(true);
 
   React.useEffect(() => {
     getAccounts().then(setAccounts);
     getGroups().then((gs) => {
       setGroupList(gs);
+      setLoadingGroups(false);
     });
   }, []);
 
@@ -109,6 +111,7 @@ const IdManagement = () => {
       }
       setRemovedIds([]);
       setAccounts([...accounts]);
+      getAccounts().then(setAccounts); // refresh from backend
       setDirty(false);
       setSaveStatus("保存成功");
     } catch (e) {
@@ -178,23 +181,29 @@ const IdManagement = () => {
                     />
                   </td>
                   <td className="p-2">
-                    <div className="flex flex-wrap gap-2">
-                      {groups.map((g) => (
-                        <label
-                          key={g.name}
-                          className="flex items-center space-x-1"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={(acc.groups || []).includes(g.name)}
-                            onChange={(e) =>
-                              toggleGroup(idx, g.name, e.target.checked)
-                            }
-                            className="form-checkbox"
-                          />
-                          <span>{g.name}</span>
-                        </label>
-                      ))}
+                  <div className="flex flex-wrap gap-2">
+                      {loadingGroups && groups.length === 0 ? (
+                        <span className="text-sm text-gray-500">加载分组中...</span>
+                      ) : groups.length === 0 ? (
+                        <span className="text-sm text-gray-500">暂无分组</span>
+                      ) : (
+                        groups.map((g) => (
+                          <label
+                            key={g.name}
+                            className="flex items-center space-x-1"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={(acc.groups || []).includes(g.name)}
+                              onChange={(e) =>
+                                toggleGroup(idx, g.name, e.target.checked)
+                              }
+                              className="form-checkbox"
+                            />
+                            <span>{g.name}</span>
+                          </label>
+                        ))
+                      )}
                     </div>
                   </td>
                   <td className="p-2">
@@ -246,26 +255,32 @@ const IdManagement = () => {
             placeholder="密码"
           />
           <div className="flex flex-wrap gap-2">
-            {groups.map((g) => (
-              <label key={g.name} className="flex items-center space-x-1">
-                <input
-                  type="checkbox"
-                  checked={newAccount.groups.includes(g.name)}
-                  onChange={(e) => {
-                    const checked = e.target.checked;
-                    setNewAccount((prev) => {
-                      const current = prev.groups;
-                      const updated = checked
-                        ? Array.from(new Set([...current, g.name]))
-                        : current.filter((n) => n !== g.name);
-                      return { ...prev, groups: updated };
-                    });
-                  }}
-                  className="form-checkbox"
-                />
-                <span>{g.name}</span>
-              </label>
-            ))}
+            {loadingGroups && groups.length === 0 ? (
+              <span className="text-sm text-gray-500">加载分组中...</span>
+            ) : groups.length === 0 ? (
+              <span className="text-sm text-gray-500">暂无分组</span>
+            ) : (
+              groups.map((g) => (
+                <label key={g.name} className="flex items-center space-x-1">
+                  <input
+                    type="checkbox"
+                    checked={newAccount.groups.includes(g.name)}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      setNewAccount((prev) => {
+                        const current = prev.groups;
+                        const updated = checked
+                          ? Array.from(new Set([...current, g.name]))
+                          : current.filter((n) => n !== g.name);
+                        return { ...prev, groups: updated };
+                      });
+                    }}
+                    className="form-checkbox"
+                  />
+                  <span>{g.name}</span>
+                </label>
+              ))
+            )}
           </div>
           <Button type="button" onClick={handleAdd}>添加</Button>
         </CardContent>

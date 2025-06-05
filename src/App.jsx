@@ -25,7 +25,7 @@ import PermissionManagement from "./components/PermissionManagement";
 import HallManagement from "./components/HallManagement";
 import TeamManagement from "./components/TeamManagement";
 import { getAccounts } from "./services/accountService";
-import { getGroups } from "./services/groupService";
+import { getGroups, PERMISSIONS } from "./services/groupService";
 import { getHalls, getAccessibleHalls } from "./services/hallService";
 
 // 登录页
@@ -164,6 +164,13 @@ const HallAdminDashboard = ({ navigate }) => {
   }, []);
 
   const permissions = React.useMemo(() => {
+    if (currentUser?.role === 'admin') {
+      const all = {};
+      PERMISSIONS.forEach(p => {
+        all[p] = true;
+      });
+      return all;
+    }
     const perms = {};
     currentUser?.groups?.forEach((name) => {
       const g = groups.find((gr) => gr.name === name);

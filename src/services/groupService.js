@@ -10,14 +10,31 @@ export const PERMISSIONS = [
   '团队管理'
 ];
 
-const groupsCol = collection(db, 'groups');
+let groupsCol;
+if (db) {
+  groupsCol = collection(db, 'groups');
+}
 
 export async function getGroups() {
+  if (!groupsCol) {
+    // Fallback groups when running without Firebase
+    const allPerms = PERMISSIONS.reduce((acc, p) => {
+      acc[p] = { view: true, edit: true };
+      return acc;
+    }, {});
+    return [
+      { id: 'admin', name: '管理员', permissions: allPerms }
+    ];
+  }
   const snap = await getDocs(groupsCol);
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
 export async function updateGroup(id, group) {
+  if (!db) {
+    console.warn('No backend configured; updateGroup skipped');
+    return true;
+  }
   await setDoc(doc(db, 'groups', id), group);
   return true;
 }
